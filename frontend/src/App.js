@@ -1,22 +1,22 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ethers } from 'ethers';
-import contractAbi from './contracts/ItContract.json';
+import ItContract from './contracts/ItContract.json';
 import './App.css';
 
-function App() {
-  const [contract, setContract] = React.useState(null);
+export default function App() {
+  const [contract, setContract] = useState(null);
+  const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3"; // Замените на ваш адрес
 
-  const initContract = async () => {
-    const provider = new ethers.JsonRpcProvider("http://localhost:8545");
-    const contract = new ethers.Contract(
-      "0x5FbDB2315678afecb367f032d93F642f64180aa3", // Замените на ваш адрес
-      contractAbi.abi,
-      provider
-    );
-    setContract(contract);
-  };
-
-  React.useEffect(() => {
+  useEffect(() => {
+    const initContract = async () => {
+      const provider = new ethers.JsonRpcProvider("http://localhost:8545");
+      const contract = new ethers.Contract(
+        contractAddress,
+        ItContract.abi,
+        provider
+      );
+      setContract(contract);
+    };
     initContract();
   }, []);
 
@@ -24,12 +24,13 @@ function App() {
     <div className="App">
       <h1>Diploma Registry</h1>
       {contract ? (
-        <p>Contract connected at {contract.address}</p>
+        <div>
+          <p>Contract address: {contractAddress}</p>
+          <button onClick={() => console.log(contract)}>Test Connection</button>
+        </div>
       ) : (
-        <p>Loading contract...</p>
+        <p>Connecting to contract...</p>
       )}
     </div>
   );
 }
-
-export default App;

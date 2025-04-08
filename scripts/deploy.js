@@ -1,33 +1,39 @@
+const { ethers } = require("hardhat");
+
 async function main() {
   const [deployer] = await ethers.getSigners();
   console.log("Deploying contracts with the account:", deployer.address);
 
   // Получаем фабрику контракта
   const DiplomaRegistry = await ethers.getContractFactory("DiplomaRegistry");
-
-  // Разворачиваем контракт и ждем его развертывания
-  const diplomaRegistry = await DiplomaRegistry.deploy();
   console.log("Deploying DiplomaRegistry...");
+
+  // Разворачиваем контракт
+  const diplomaRegistry = await DiplomaRegistry.deploy();
   
-  // Убедитесь, что контракт развернут (мы убираем использование `deployed()` в тестах)
-  console.log("DiplomaRegistry deployed to:", diplomaRegistry.address);
+  // Ждем, пока контракт будет развернут (для ethers.js v6+ используем waitForDeployment())
+  await diplomaRegistry.waitForDeployment();
+  
+  // Получаем адрес контракта (важно для ethers.js v6+)
+  const contractAddress = await diplomaRegistry.getAddress();
+  console.log("DiplomaRegistry deployed to:", contractAddress);
 
-  // Добавляем диплом для студента
-  const studentAddress = "0x1234567890abcdef1234567890abcdef12345678"; // Пример адреса
-  const name = "Diploma #1";
-  const university = "University XYZ";
-  const year = "2025";
-
-  // Вызов функции addDiploma
-  const tx = await diplomaRegistry.addDiploma(studentAddress, name, university, year);
-  await tx.wait(); // Ждем завершения транзакции
-  console.log("Diploma added for student:", studentAddress);
+  // Добавляем тестовый диплом
+  const tx = await diplomaRegistry.addDiploma(
+    "0x1234567890abcdef1234567890abcdef12345678",
+    "Diploma #1",
+    "University XYZ",
+    "2025"
+  );
+  
+  // Ждем подтверждения транзакции
+  await tx.wait();
+  console.log("Diploma added for student: 0x1234567890abcdef1234567890abcdef12345678");
 }
 
-// Запуск скрипта
 main()
   .then(() => process.exit(0))
   .catch((error) => {
-      console.error(error);
-      process.exit(1);
+    console.error(error);
+    process.exit(1);
   });

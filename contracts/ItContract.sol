@@ -1,29 +1,28 @@
-// SPDX-License-Identifier: SEE LICENSE IN LICENSE
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-contract ItContract {
-    string public name = "TimMov";
-    string public symbol = "TM";
-    uint8 public decimals = 18;
-    uint256 public totalSupply;
-
-    // Переименовал переменную balance0f в balanceOf
-    mapping (address => uint256) public balanceOf;
-
-    // Оставляем событие с именем Transfer
-    event Transfer(address indexed from, address indexed to, uint256 value);
-
-    constructor(uint256 _initialSupply) {
-        totalSupply = _initialSupply * 10 ** uint256(decimals);
-        balanceOf[msg.sender] = totalSupply;  // Используем balanceOf вместо balance0f
+contract DiplomaRegistry {
+    struct Diploma {
+        string name;
+        string university;
+        string year;
     }
 
-    // Переименовал функцию Transfer в transferTokens
-    function transferTokens(address _to, uint256 _value) public returns (bool success) {
-        require(balanceOf[msg.sender] >= _value, "Insufficient balance");  // Проверка на достаточность средств
-        balanceOf[msg.sender] -= _value;  // Снимаем средства с отправителя
-        balanceOf[_to] += _value;  // Добавляем средства получателю
-        emit Transfer(msg.sender, _to, _value);  // Генерируем событие Transfer
-        return true;
+    mapping(address => Diploma) public diplomas;
+
+    // Функция для добавления диплома
+    function addDiploma(
+        address student, 
+        string memory name, 
+        string memory university, 
+        string memory year
+    ) public {
+        diplomas[student] = Diploma(name, university, year);
+    }
+
+    // Функция для получения диплома по адресу
+    function getDiploma(address student) public view returns (string memory, string memory, string memory) {
+        Diploma memory diploma = diplomas[student];
+        return (diploma.name, diploma.university, diploma.year);
     }
 }

@@ -1,58 +1,81 @@
-.app {
+.container {
   max-width: 800px;
   margin: 0 auto;
   padding: 20px;
+  font-family: Arial, sans-serif;
 }
 
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 30px;
-}
-
-input {
-  padding: 8px;
-  font-size: 16px;
-}
-
-button {
-  padding: 10px;
-  background: #4CAF50;
-  color: white;
-  border: none;
-  cursor: pointer;
-}
-
-.diploma-list ul {
-  list-style: none;
-  padding: 0;
-}
-
-.diploma-list li {
-  background: #f9f9f9;
-  padding: 15px;
-  margin-bottom: 10px;
-  border-radius: 5px;
-}
-
-.loading, .error {
-  padding: 20px;
+.loading {
   text-align: center;
-  margin: 50px auto;
-  max-width: 500px;
+  padding: 20px;
+  font-size: 1.2rem;
 }
 
 .error {
   color: #d32f2f;
-  border: 1px solid #d32f2f;
+  background-color: #ffebee;
+  padding: 15px;
   border-radius: 4px;
+  margin: 20px 0;
+  border-left: 4px solid #d32f2f;
 }
 
-.wallet-info {
-  background: #f5f5f5;
+.form-section {
+  background: #f5f7fa;
+  padding: 25px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.form-group input {
+  width: 100%;
   padding: 10px;
+  border: 1px solid #ddd;
   border-radius: 4px;
+  font-size: 16px;
+}
+
+.submit-btn, .refresh-btn {
+  background: #4a6fa5;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.3s;
+}
+
+.submit-btn:hover, .refresh-btn:hover {
+  background: #3a5a8c;
+}
+
+.submit-btn:disabled, .refresh-btn:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
+}
+
+.diplomas-section {
+  background: white;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 20px;
 }
 
@@ -61,9 +84,15 @@ button {
   padding: 0;
 }
 
-.diplomas-list li {
-  padding: 10px;
-  margin: 5px 0;
+.diploma-item {
   background: #f9f9f9;
+  padding: 15px;
+  margin-bottom: 10px;
   border-radius: 4px;
+  border-left: 4px solid #4a6fa5;
+}
+
+.diploma-item h3 {
+  margin-top: 0;
+  color: #2c3e50;
 }

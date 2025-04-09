@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "D:\\Goland\\BlochaineProjects\\blockchain\\contracts\\ItContract.sol": {
-      "lastModificationDate": 1744224265772,
-      "contentHash": "ebdfdc22ea62d059f53192a1f46066ec",
+      "lastModificationDate": 1744228453246,
+      "contentHash": "bac7a0898e250e44954689a9c2b5b99c",
       "sourceName": "contracts/ItContract.sol",
       "solcConfig": {
         "version": "0.8.28",
@@ -34,7 +34,7 @@
         "^0.8.20"
       ],
       "artifacts": [
-        "ItContract"
+        "DiplomaRegistry"
       ]
     },
     "D:\\Goland\\BlochaineProjects\\blockchain\\contracts\\Lock.sol": {

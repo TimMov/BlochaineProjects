@@ -1,0 +1,6 @@
+{
+  "scripts": {
+    "start": "react-scripts start",
+    "copy-abi": "cp ../blockchain/artifacts/contracts/ItContract.sol/ItContract.json src/contracts/"
+  }
+}

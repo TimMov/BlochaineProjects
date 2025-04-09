@@ -1,36 +1,25 @@
-import React, { useEffect, useState } from 'react';
-import { ethers } from 'ethers';
-import ItContract from './contracts/ItContract.json';
+import logo from './logo.svg';
 import './App.css';
 
-export default function App() {
-  const [contract, setContract] = useState(null);
-  const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
-
-  useEffect(() => {
-    const initContract = async () => {
-      const provider = new ethers.JsonRpcProvider("http://localhost:8545");
-      const contract = new ethers.Contract(
-        contractAddress,
-        ItContract.abi,
-        provider
-      );
-      setContract(contract);
-    };
-    initContract();
-  }, []);
-
+function App() {
   return (
     <div className="App">
-      <h1>Diploma Registry</h1>
-      {contract ? (
-        <div>
-          <p>Contract address: {contractAddress}</p>
-          <button onClick={() => console.log(contract)}>Test Connection</button>
-        </div>
-      ) : (
-        <p>Connecting to contract...</p>
-      )}
+      <header className="App-header">
+        <img src={logo} className="App-logo" alt="logo" />
+        <p>
+          Edit <code>src/App.js</code> and save to reload.
+        </p>
+        <a
+          className="App-link"
+          href="https://reactjs.org"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Learn React
+        </a>
+      </header>
     </div>
   );
 }
+
+export default App;

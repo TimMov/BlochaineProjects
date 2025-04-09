@@ -1,25 +1,23 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.28;
+pragma solidity ^0.8.20;
 
 contract ItContract {
     struct Diploma {
-        address owner;
         string studentName;
         string universityName;
-        string year;
+        uint256 year;
     }
-
+    
     Diploma[] public diplomas;
-
+    
     function addDiploma(
-        address _owner,
-        string memory _studentName,
-        string memory _universityName,
-        string memory _year
+        string memory _studentName, 
+        string memory _universityName, 
+        uint256 _year
     ) public {
-        diplomas.push(Diploma(_owner, _studentName, _universityName, _year));
+        diplomas.push(Diploma(_studentName, _universityName, _year));
     }
-
+    
     function getDiplomasCount() public view returns (uint256) {
         return diplomas.length;
     }

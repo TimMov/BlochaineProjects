@@ -1,27 +1,16 @@
-import { ethers } from "hardhat";
+const hre = require("hardhat");
 
 async function main() {
-  const [deployer] = await ethers.getSigners();
-  console.log("Deploying contracts with the account:", deployer.address);
-
-  const ItContract = await ethers.getContractFactory("ItContract");
+  const ItContract = await hre.ethers.getContractFactory("ItContract");
   const contract = await ItContract.deploy();
   
-  // Ждем подтверждения деплоя
-  await contract.deployed();
-  
-  console.log("Contract deployed to:", contract.address);
-  
-  // Возвращаем адрес для использования в других скриптах
-  return contract.address;
+  await contract.waitForDeployment();
+  console.log("Contract deployed to:", await contract.getAddress());
 }
 
 main()
-  .then((address) => {
-    console.log("Deployment complete. Address:", address);
-    process.exit(0);
-  })
+  .then(() => process.exit(0))
   .catch((error) => {
-    console.error("Deployment failed:", error);
+    console.error(error);
     process.exit(1);
   });

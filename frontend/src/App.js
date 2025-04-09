@@ -1,50 +1,70 @@
-import React, { useState, useEffect } from 'react';
-import { ethers } from 'ethers';
+import { useState, useEffect } from 'react';
+import { Contract, providers } from 'ethers';
 import ItContract from './contracts/ItContract.json';
-import AddDiplomaForm from './components/AddDiplomaForm';
-import DiplomaList from './components/DiplomaList';
 
-const CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+const CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3"; // Hardhat локальный адрес
 
-function App() {
-  const [provider, setProvider] = useState(null);
+export default function App() {
   const [contract, setContract] = useState(null);
   const [diplomas, setDiplomas] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const init = async () => {
-      const prov = new ethers.BrowserProvider(window.ethereum);
-      setProvider(prov);
-      
-      const signer = await prov.getSigner();
-      const cntr = new ethers.Contract(
-        CONTRACT_ADDRESS,
-        ItContract.abi,
-        signer
-      );
-      setContract(cntr);
-      loadDiplomas(cntr);
+      try {
+        if (!window.ethereum) throw new Error("MetaMask не установлен");
+        
+        const provider = new providers.Web3Provider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        
+        const contract = new Contract(
+          CONTRACT_ADDRESS,
+          ItContract.abi,
+          provider.getSigner()
+        );
+        
+        setContract(contract);
+        await loadDiplomas(contract);
+      } catch (err) {
+        console.error(err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    if(window.ethereum) init();
+    init();
   }, []);
 
   const loadDiplomas = async (contract) => {
     const count = await contract.getDiplomasCount();
-    const loaded = [];
-    for(let i = 0; i < count; i++) {
-      loaded.push(await contract.diplomas(i));
+    const diplomas = [];
+    for (let i = 0; i < count; i++) {
+      diplomas.push(await contract.diplomas(i));
     }
-    setDiplomas(loaded);
+    setDiplomas(diplomas);
   };
+
+  if (loading) return <div>Загрузка...</div>;
+  if (error) return <div>Ошибка: {error}</div>;
 
   return (
     <div className="app">
-      <h1>Blockchain Diploma Registry</h1>
-      <AddDiplomaForm contract={contract} onAdd={loadDiplomas} />
-      <DiplomaList diplomas={diplomas} />
+      <h1>Diploma Registry</h1>
+      {contract && (
+        <>
+          <p>Контракт подключен: {CONTRACT_ADDRESS}</p>
+          <h2>Дипломы ({diplomas.length})</h2>
+          <ul>
+            {diplomas.map((d, i) => (
+              <li key={i}>
+                {d.studentName} - {d.universityName} ({d.year})
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
     </div>
   );
 }
-
-export default App;

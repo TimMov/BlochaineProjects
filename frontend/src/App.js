@@ -5,7 +5,7 @@ import './App.css';
 
 export default function App() {
   const [contract, setContract] = useState(null);
-  const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3"; // Замените на ваш адрес
+  const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
 
   useEffect(() => {
     const initContract = async () => {

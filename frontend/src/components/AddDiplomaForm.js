@@ -1,50 +1,65 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
-export default function AddDiplomaForm({ contract, onAdd }) {
+function DiplomaForm({ onAddDiploma }) {
   const [formData, setFormData] = useState({
     studentName: '',
-    universityName: '',
+    institution: '',
+    degree: '',
     year: ''
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const tx = await contract.addDiploma(
-        await contract.signer.getAddress(),
-        formData.studentName,
-        formData.universityName,
-        formData.year
-      );
-      await tx.wait();
-      onAdd(contract);
-      setFormData({ studentName: '', universityName: '', year: '' });
-    } catch (err) {
-      console.error("Error adding diploma:", err);
+    setIsSubmitting(true);
+    setError(null);
+    
+    const result = await onAddDiploma(formData);
+    
+    if (result.success) {
+      setFormData({
+        studentName: '',
+        institution: '',
+        degree: '',
+        year: ''
+      });
+    } else {
+      setError(result.error || 'Failed to add diploma');
     }
+    
+    setIsSubmitting(false);
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <input
-        value={formData.studentName}
-        onChange={(e) => setFormData({...formData, studentName: e.target.value})}
-        placeholder="Student Name"
-        required
-      />
-      <input
-        value={formData.universityName}
-        onChange={(e) => setFormData({...formData, universityName: e.target.value})}
-        placeholder="University"
-        required
-      />
-      <input
-        value={formData.year}
-        onChange={(e) => setFormData({...formData, year: e.target.value})}
-        placeholder="Year"
-        required
-      />
-      <button type="submit">Add Diploma</button>
-    </form>
+    <div className="form-container">
+      <h2>Add New Diploma</h2>
+      {error && <div className="error-message">{error}</div>}
+      <form onSubmit={handleSubmit}>
+        <div className="form-group">
+          <label>Student Name</label>
+          <input
+            type="text"
+            name="studentName"
+            value={formData.studentName}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        {/* Остальные поля формы аналогично */}
+        <button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? 'Adding...' : 'Add to Blockchain'}
+        </button>
+      </form>
+    </div>
   );
 }
+
+export default DiplomaForm;

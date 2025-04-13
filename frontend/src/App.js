@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Contract, BrowserProvider } from 'ethers';
 
-const CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3"; // замените на актуальный адрес
+const CONTRACT_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";//"0x5FbDB2315678afecb367f032d93F642f64180aa3"; // Замените на актуальный адрес
 const CONTRACT_ABI = [
   {
     inputs: [
@@ -31,6 +31,13 @@ const CONTRACT_ABI = [
     ],
     stateMutability: "view",
     type: "function"
+  },
+  {
+    inputs: [{ internalType: "uint256", name: "index", type: "uint256" }],
+    name: "removeDiploma",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
   }
 ];
 
@@ -44,28 +51,67 @@ function App() {
   const [contract, setContract] = useState(null);
 
   useEffect(() => {
-    async function init() {
-      const provider = new BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      const contractInstance = new Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
-      setContract(contractInstance);
-      await loadDiplomas(contractInstance);
-    }
+    const init = async () => {
+      try {
+        if (!window.ethereum) {
+          alert('Пожалуйста, установите MetaMask!');
+          return;
+        }
+
+        // Запрос подключения кошелька
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
+        
+        const provider = new BrowserProvider(window.ethereum);
+        
+        // Проверка сети
+        const network = await provider.getNetwork();
+        if (network.chainId !== 31337n) {
+          await window.ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [{
+              chainId: '0x7A69', // 31337 в hex
+              chainName: 'Hardhat',
+              nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
+              rpcUrls: ['http://localhost:8545']
+            }]
+          });
+        }
+
+        const signer = await provider.getSigner();
+        const contractInstance = new Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+        setContract(contractInstance);
+        await loadDiplomas(contractInstance);
+
+      } catch (error) {
+        console.error('Ошибка инициализации:', error);
+        alert(`Ошибка: ${error.message}`);
+      }
+    };
+
     init();
+
+    return () => {
+      window.ethereum?.removeAllListeners();
+    };
   }, []);
+  
 
   const loadDiplomas = async (contractInstance) => {
-    const count = await contractInstance.getDiplomasCount();
-    const loaded = [];
-    for (let i = 0; i < count; i++) {
-      const diploma = await contractInstance.getDiploma(i);
-      loaded.push({
-        studentName: diploma[0],
-        universityName: diploma[1],
-        year: diploma[2]
-      });
+    try {
+      const count = await contractInstance.getDiplomasCount();
+      const loaded = [];
+      for (let i = 0; i < count; i++) {
+        const diploma = await contractInstance.getDiploma(i);
+        loaded.push({
+          studentName: diploma[0],
+          universityName: diploma[1],
+          year: diploma[2].toString() // Преобразуем год в строку
+        });
+      }
+      setDiplomas(loaded);
+    } catch (error) {
+      console.error('Error loading diplomas:', error);
     }
-    setDiplomas(loaded);
   };
 
   const handleChange = (e) => {
@@ -85,6 +131,17 @@ function App() {
     setForm({ studentName: '', universityName: '', year: '' });
     await loadDiplomas(contract);
   };
+
+  // const handleRemove = async (index) => {
+  //   if (!contract) return;
+  //   try {
+  //     const tx = await contract.removeDiploma(index);
+  //     await tx.wait();
+  //     await loadDiplomas(contract);
+  //   } catch (error) {
+  //     console.error('Error removing diploma:', error);
+  //   }
+  // };
 
   return (
     <div className="container mt-5">
@@ -147,6 +204,7 @@ function App() {
                     <strong>{d.studentName}</strong><br />
                     {d.universityName}<br />
                     {d.year}
+                    {/* <button onClick={() => handleRemove(i)} className="btn btn-danger btn-sm ms-2">Удалить</button> */}
                   </div>
                 ))}
                 {diplomas.length === 0 && <p>Нет добавленных дипломов.</p>}

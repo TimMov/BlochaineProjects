@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Contract, BrowserProvider } from 'ethers';
 
-const CONTRACT_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
+const CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
 const CONTRACT_ABI = [
   {
     inputs: [
@@ -71,7 +71,7 @@ function App() {
             params: [{
               chainId: '0x7A69', // 31337 в hex
               chainName: 'Hardhat',
-              nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
+              nativeCurrency: { name: 'TM', symbol: 'TM', decimals: 18 },
               rpcUrls: ['http://localhost:8545']
             }]
           });

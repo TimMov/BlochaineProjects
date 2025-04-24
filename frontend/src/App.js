@@ -1,20 +1,31 @@
-import React, { useState } from "react";
-import LoginPage from "./LoginPage";
-import DiplomApp from "./AddDiplomPage"; // для администратора
-import DiplomViewer from "./VieDiplomPage"; // для обычного пользователя
+import React, { useState } from 'react';
+import LoginPage from './LoginPage';
+import './App.css';
 
 function App() {
-  const [role, setRole] = useState(null);
+  const [userRole, setUserRole] = useState(null);
 
-  const handleLoginSuccess = (userRole) => {
-    setRole(userRole);
+  const handleLogin = (role) => {
+    setUserRole(role);
+  };
+
+  const handleLogout = () => {
+    setUserRole(null);
   };
 
   return (
-    <div>
-      {!role && <LoginPage onLogin={handleLoginSuccess} />}
-      {role === "admin" && <DiplomApp />}
-      {role === "user" && <DiplomViewer />}
+    <div className="app">
+      {userRole ? (
+        <div>
+          <header>
+            <h1>Дипломы ({userRole})</h1>
+            <button onClick={handleLogout}>Выйти</button>
+          </header>
+          {/* Здесь будет основной контент */}
+        </div>
+      ) : (
+        <LoginPage onLogin={handleLogin} />
+      )}
     </div>
   );
 }

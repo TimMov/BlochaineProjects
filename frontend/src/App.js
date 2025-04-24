@@ -1,30 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import LoginPage from './LoginPage';
-import './App.css';
+import DiplomApp from './AddDiplomPage'; // Убедитесь в правильности имени
+import DiplomViewer from './VieDiplomPage'; // Используйте текущее имя файла
 
 function App() {
-  const [userRole, setUserRole] = useState(null);
+  const [role, setRole] = useState(null);
 
-  const handleLogin = (role) => {
-    setUserRole(role);
-  };
-
-  const handleLogout = () => {
-    setUserRole(null);
-  };
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const savedRole = localStorage.getItem('role');
+    if (token && savedRole) {
+      setRole(savedRole);
+    }
+  }, []);
 
   return (
-    <div className="app">
-      {userRole ? (
-        <div>
-          <header>
-            <h1>Дипломы ({userRole})</h1>
-            <button onClick={handleLogout}>Выйти</button>
-          </header>
-          {/* Здесь будет основной контент */}
-        </div>
+    <div>
+      {!role ? (
+        <LoginPage onLogin={setRole} />
+      ) : role === 'admin' ? (
+        <DiplomApp />
       ) : (
-        <LoginPage onLogin={handleLogin} />
+        <DiplomViewer />
       )}
     </div>
   );

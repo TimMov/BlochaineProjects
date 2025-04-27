@@ -1,34 +1,33 @@
-// scripts/deploy.js
 const hre = require("hardhat");
 
 async function main() {
-    const DiplomaContract = await hre.ethers.getContractFactory("DiplomaContract");
-    const diploma = await DiplomaContract.deploy();
-    
-    await diploma.deployed();
-    
-    console.log("Contract deployed to:", diploma.address);
-    
-    // Проверка работы
+  // Получаем фабрику контракта
+  const DiplomaContract = await hre.ethers.getContractFactory("DiplomaContract");
+  
+  // Деплоим контракт
+  const diploma = await DiplomaContract.deploy();
+  
+  // Ждем подтверждения деплоя
+  await diploma.waitForDeployment();
+
+  // Получаем адрес контракта
+  const contractAddress = await diploma.getAddress();
+  
+  console.log("DiplomaContract deployed to:", contractAddress);
+  console.log("Transaction hash:", diploma.deploymentTransaction().hash);
+
+  // Проверка работы
+  try {
     const count = await diploma.getDiplomasCount();
     console.log("Initial diplomas count:", count.toString());
-    
-    // Пример добавления диплома
-    const tx = await diploma.addDiploma(
-        "Test Student",
-        "Test University",
-        2023,
-        "0xtesthash123"
-    );
-    await tx.wait();
-    
-    console.log("Added test diploma");
-    console.log("New count:", (await diploma.getDiplomasCount()).toString());
+  } catch (error) {
+    console.error("Test call failed:", error);
+  }
 }
 
 main()
-    .then(() => process.exit(0))
-    .catch((error) => {
-        console.error(error);
-        process.exit(1);
-    });
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });

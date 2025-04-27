@@ -1,19 +1,16 @@
 const express = require('express');
 const cors = require('cors');
-const { initBlockchain } = require('./blockchain');
 const diplomasRouter = require('./routes/diplomas');
+const { provider, wallet } = require('./blockchain');
 
 const app = express();
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000'
-}));
+
+// Middleware
+app.use(cors());
 app.use(express.json());
 
-// Инициализация блокчейна при старте
-app.locals.blockchain = initBlockchain();
-
 // Роуты
-app.use('/api/diplomas', diplomasRouter);
+app.use('/api/diplomas', diplomasRouter);  // Теперь передается правильный middleware
 
 // Обработка ошибок
 app.use((err, req, res, next) => {
@@ -21,8 +18,20 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: err.message });
 });
 
+// Проверка подключений при старте
+async function startupChecks() {
+  try {
+    const blockNumber = await provider.getBlockNumber();
+    console.log(`Connected to blockchain (Block: ${blockNumber})`);
+    console.log(`Wallet address: ${wallet.address}`);
+  } catch (error) {
+    console.error('Startup checks failed:', error);
+    process.exit(1);
+  }
+}
+
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);
-  console.log(`Connected to blockchain: ${process.env.BLOCKCHAIN_URL}`);
+  await startupChecks();
 });

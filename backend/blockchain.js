@@ -1,48 +1,55 @@
 const { ethers } = require('ethers');
+const path = require('path');
 require('dotenv').config();
 
-// Проверка конфигурации
-function validateConfig() {
-  const required = ['BLOCKCHAIN_URL', 'PRIVATE_KEY', 'CONTRACT_ADDRESS'];
-  const errors = [];
+// Исправленный путь к ABI
+const contractABI = require(path.join(__dirname, 'contracts', 'abi', 'DiplomaContract.json'));
 
-  required.forEach(key => {
-    if (!process.env[key]) errors.push(`Missing ${key} in .env`);
-  });
+// Инициализация провайдера
+const provider = new ethers.JsonRpcProvider(process.env.BLOCKCHAIN_URL);
 
-  if (errors.length > 0) throw new Error(errors.join('\n'));
-}
+// Инициализация кошелька
+const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
 
-// Инициализация блокчейн-подключения
-function initBlockchain() {
-  validateConfig();
-
-  const provider = new ethers.JsonRpcProvider(process.env.BLOCKCHAIN_URL);
-  const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
-  
-  const contractABI = require('../contracts/abi/DiplomaContract.json');
-  const contract = new ethers.Contract(
-    process.env.CONTRACT_ADDRESS,
-    contractABI,
-    wallet
-  );
-
-  return { provider, wallet, contract };
-}
+// Инициализация контракта
+const contract = new ethers.Contract(
+  process.env.CONTRACT_ADDRESS,
+  contractABI,
+  wallet
+);
 
 // Методы для работы с контрактом
-async function addDiplomaToBlockchain(contract, data) {
-  const tx = await contract.addDiploma(
-    data.studentName,
-    data.universityName,
-    data.year,
-    data.diplomaHash
-  );
+const storeInBlockchain = async (studentName, universityName, year, diplomaHash) => {
+  const tx = await contract.addDiploma(studentName, universityName, year, diplomaHash);
   const receipt = await tx.wait();
-  return receipt;
-}
+  return {
+    txHash: receipt.hash,
+    blockNumber: receipt.blockNumber
+  };
+};
+
+const getDiplomasFromBlockchain = async () => {
+  const count = await contract.getDiplomasCount();
+  const diplomas = [];
+  
+  for (let i = 0; i < Number(count); i++) {
+    const diploma = await contract.diplomas(i);
+    diplomas.push({
+      id: i,
+      studentName: diploma[0],
+      universityName: diploma[1],
+      year: Number(diploma[2]),
+      diplomaHash: diploma[3]
+    });
+  }
+  
+  return diplomas;
+};
 
 module.exports = {
-  initBlockchain,
-  addDiplomaToBlockchain
+  contract,
+  provider,
+  wallet,
+  storeInBlockchain,
+  getDiplomasFromBlockchain
 };

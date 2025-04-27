@@ -1,51 +1,28 @@
-require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const { Pool } = require('pg');
+const { initBlockchain } = require('./blockchain');
+const diplomasRouter = require('./routes/diplomas');
 
-// Инициализация приложения
 const app = express();
-
-// Middleware
-app.use(cors());
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000'
+}));
 app.use(express.json());
 
-// Подключение к PostgreSQL
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL
+// Инициализация блокчейна при старте
+app.locals.blockchain = initBlockchain();
+
+// Роуты
+app.use('/api/diplomas', diplomasRouter);
+
+// Обработка ошибок
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: err.message });
 });
 
-// Тестовый маршрут
-app.get('/', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT NOW()');
-    res.json({
-      status: 'API работает',
-      dbTime: result.rows[0].now
-    });
-  } catch (err) {
-    console.error('Ошибка БД:', err);
-    res.status(500).json({ error: 'Ошибка подключения к БД' });
-  }
-});
-
-// Обработка необработанных ошибок
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-});
-
-// Запуск сервера
 const PORT = process.env.PORT || 5000;
-const server = app.listen(PORT, () => {
-  console.log(`Сервер запущен на порту ${PORT}`);
-});
-
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('SIGTERM signal received');
-  server.close(() => {
-    pool.end();
-    console.log('Сервер остановлен');
-    process.exit(0);
-  });
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  console.log(`Connected to blockchain: ${process.env.BLOCKCHAIN_URL}`);
 });

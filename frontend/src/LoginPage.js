@@ -1,50 +1,63 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import axios from 'axios';
 
 const LoginPage = ({ onLogin }) => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [inputs, setInputs] = useState({ username: '', password: '' });
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setIsLoading(true);
+
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/login', {
-        username,
-        password
-      });
+      const response = await axios.post('http://localhost:5000/api/auth/login', inputs);
       
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('role', response.data.role);
-      onLogin(response.data.role);
+      // Проверяем структуру ответа перед передачей
+      if (!response.data?.user) {
+        throw new Error('Некорректный ответ сервера');
+      }
+      
+      onLogin(response.data); // Передаём весь объект ответа
     } catch (err) {
-      setError(err.response?.data?.message || 'Ошибка авторизации');
+      const message = err.response?.data?.message || 
+                     err.message || 
+                     'Ошибка соединения';
+      setError(message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  const handleChange = (e) => {
+    setInputs({ ...inputs, [e.target.name]: e.target.value });
+  };
+
   return (
-    <div style={{ width: 300, margin: '100px auto' }}>
-      <h2>Вход</h2>
-      <input
-        type="text"
-        placeholder="Логин"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-        style={{ width: '100%', marginBottom: 10, padding: 8 }}
-      />
-      <input
-        type="password"
-        placeholder="Пароль"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        style={{ width: '100%', marginBottom: 10, padding: 8 }}
-      />
-      <button 
-        onClick={handleLogin}
-        style={{ width: '100%', padding: 10, backgroundColor: '#4CAF50', color: 'white' }}
-      >
-        Войти
-      </button>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+    <div className="login-form">
+      <h2>Вход в систему</h2>
+      {error && <div className="error">{error}</div>}
+      <form onSubmit={handleSubmit}>
+        <input
+          name="username"
+          value={inputs.username}
+          onChange={handleChange}
+          placeholder="Логин"
+          required
+        />
+        <input
+          name="password"
+          type="password"
+          value={inputs.password}
+          onChange={handleChange}
+          placeholder="Пароль"
+          required
+        />
+        <button type="submit" disabled={isLoading}>
+          {isLoading ? 'Вход...' : 'Войти'}
+        </button>
+      </form>
     </div>
   );
 };

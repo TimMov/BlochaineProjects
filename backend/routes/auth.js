@@ -1,47 +1,40 @@
+const express = require('express');
 const bcrypt = require('bcryptjs');
 const pool = require('../db');
+const router = express.Router();
 
-router.post('/register', async (req, res) => {
-  try {
-    const { username, password, role } = req.body;
-    const salt = await bcrypt.genSalt(10);
-    const passwordHash = await bcrypt.hash(password, salt);
-    
-    await pool.query(
-      `INSERT INTO users 
-       (username, password_hash, password_visible, salt, role, created_at) 
-       VALUES ($1, $2, $3, $4, $5, NOW())`,
-      [username, passwordHash, password, salt, role || 'user']
-    );
-    
-    res.json({ success: true });
-  } catch (error) {
-    console.error('Registration error:', error);
-    res.status(500).json({ error: 'Registration failed' });
-  }
-});
-
+// Логин пользователя
 router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
+    
+    // 1. Находим пользователя
     const user = await pool.query(
       'SELECT * FROM users WHERE username = $1', 
       [username]
     );
 
     if (user.rows.length === 0) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+      return res.status(401).json({ 
+        success: false,
+        message: 'Invalid username or password' 
+      });
     }
 
+    // 2. Проверяем пароль
     const validPassword = await bcrypt.compare(
       password, 
       user.rows[0].password_hash
     );
     
     if (!validPassword) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+      return res.status(401).json({ 
+        success: false,
+        message: 'Invalid username or password ' + user.rows[0].password_hash 
+      });
     }
 
+    // 3. Успешный ответ
     res.json({ 
       success: true,
       user: {
@@ -50,8 +43,14 @@ router.post('/login', async (req, res) => {
         role: user.rows[0].role
       }
     });
+
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error during authentication' 
+    });
   }
 });
+
+module.exports = router;

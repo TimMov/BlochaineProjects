@@ -1,65 +1,34 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import axios from 'axios';
+import { useMetaMask } from 'metamask-react';
 
-function DiplomaForm({ onAddDiploma }) {
-  const [formData, setFormData] = useState({
+function AddDiplomPage() {
+  const [form, setForm] = useState({
     studentName: '',
-    institution: '',
-    degree: '',
-    year: ''
+    university: '',
+    year: '',
+    studentId: ''
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState(null);
+  const { account } = useMetaMask();
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setError(null);
-    
-    const result = await onAddDiploma(formData);
-    
-    if (result.success) {
-      setFormData({
-        studentName: '',
-        institution: '',
-        degree: '',
-        year: ''
+  const handleSubmit = async () => {
+    try {
+      const response = await axios.post('/api/diplomas', {
+        ...form,
+        creatorId: account // ID из MetaMask
       });
-    } else {
-      setError(result.error || 'Failed to add diploma');
+      
+      alert(`Диплом добавлен! TX Hash: ${response.data.txHash}`);
+    } catch (err) {
+      alert('Ошибка: ' + err.response?.data?.error);
     }
-    
-    setIsSubmitting(false);
   };
 
   return (
-    <div className="form-container">
-      <h2>Add New Diploma</h2>
-      {error && <div className="error-message">{error}</div>}
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label>Student Name</label>
-          <input
-            type="text"
-            name="studentName"
-            value={formData.studentName}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        {/* Остальные поля формы аналогично */}
-        <button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Adding...' : 'Add to Blockchain'}
-        </button>
-      </form>
+    <div>
+      <h2>Добавить диплом</h2>
+      {/* Форма ввода данных */}
+      <button onClick={handleSubmit}>Сохранить в блокчейн</button>
     </div>
   );
 }
-
-export default DiplomaForm;

@@ -6,71 +6,108 @@ contract DiplomaRegistry {
         string studentName;
         string universityName;
         uint256 year;
+        uint256 timestamp;
     }
 
     address public owner;
     uint256 private diplomaCount;
     mapping(uint256 => Diploma) private diplomas;
+    mapping(bytes32 => bool) private diplomaHashes; // Для проверки уникальности
 
-    event DiplomaAdded(uint256 indexed id, string studentName, string universityName, uint256 year);
-    event DiplomaRemoved(uint256 indexed id);
+    event DiplomaAdded(
+        uint256 indexed id,
+        string studentName,
+        string universityName,
+        uint256 year,
+        uint256 timestamp,
+        bytes32 diplomaHash
+    );
+
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
     modifier onlyOwner() {
-        require(msg.sender == owner, "Only the owner can perform this action");
+        require(msg.sender == owner, "Only owner");
         _;
     }
 
     constructor() {
-        owner = msg.sender; // Устанавливаем владельца контракта
+        owner = msg.sender;
     }
 
-    // Функция для добавления диплома
+    // Добавление диплома с проверкой уникальности
     function addDiploma(
         string calldata _studentName,
         string calldata _universityName,
         uint256 _year
     ) external onlyOwner {
-        require(bytes(_studentName).length > 0, "Student name cannot be empty");
-        require(bytes(_universityName).length > 0, "University name cannot be empty");
-        require(_year >= 1900 && _year <= 2100, "Invalid graduation year");
+        require(bytes(_studentName).length > 0, "Empty student name");
+        require(bytes(_universityName).length > 0, "Empty university name");
+        require(_year >= 1900 && _year <= block.timestamp / 31536000 + 1970, "Invalid year");
 
-        diplomas[diplomaCount] = Diploma(_studentName, _universityName, _year);
-        emit DiplomaAdded(diplomaCount, _studentName, _universityName, _year);
+        bytes32 hash = keccak256(abi.encodePacked(
+            _studentName,
+            _universityName,
+            _year
+        ));
+        
+        require(!diplomaHashes[hash], "Diploma already exists");
+        
+        diplomas[diplomaCount] = Diploma(
+            _studentName,
+            _universityName,
+            _year,
+            block.timestamp
+        );
+        
+        diplomaHashes[hash] = true;
+        
+        emit DiplomaAdded(
+            diplomaCount,
+            _studentName,
+            _universityName,
+            _year,
+            block.timestamp,
+            hash
+        );
+        
         diplomaCount++;
     }
 
-    // Функция для получения количества дипломов
+    // Безопасная передача владения
+    function transferOwnership(address newOwner) external onlyOwner {
+        require(newOwner != address(0), "Zero address");
+        emit OwnershipTransferred(owner, newOwner);
+        owner = newOwner;
+    }
+
+    // Оптимизированная функция получения диплома
+    function getDiploma(uint256 index) external view returns (
+        string memory,
+        string memory,
+        uint256,
+        uint256
+    ) {
+        require(index < diplomaCount, "Invalid index");
+        Diploma storage d = diplomas[index];
+        return (d.studentName, d.universityName, d.year, d.timestamp);
+    }
+
+    // Получение количества дипломов (оставлено без изменений)
     function getDiplomasCount() external view returns (uint256) {
         return diplomaCount;
     }
 
-    // Функция для получения данных диплома по индексу
-    function getDiploma(uint256 index) external view returns (string memory, string memory, uint256) {
-        require(index < diplomaCount, "Diploma index out of range");
-        Diploma storage d = diplomas[index];
-        return (d.studentName, d.universityName, d.year);
-    }
-
-    // Функция для получения всех дипломов
-    function getAllDiplomas() external view returns (Diploma[] memory) {
-        Diploma[] memory allDiplomas = new Diploma[](diplomaCount);
-        for (uint256 i = 0; i < diplomaCount; i++) {
-            allDiplomas[i] = diplomas[i];
-        }
-        return allDiplomas;
-    }
-
-    // Функция для удаления диплома по индексу
-    function removeDiploma(uint256 index) external onlyOwner {
-        require(index < diplomaCount, "Diploma index out of range");
-
-        // Сдвигаем дипломы в массиве
-        for (uint256 i = index; i < diplomaCount - 1; i++) {
-            diplomas[i] = diplomas[i + 1];
-        }
-
-        delete diplomas[diplomaCount - 1]; // Удаляем последний элемент
-        diplomaCount--;
-        emit DiplomaRemoved(index);
+    // Проверка существования диплома по хэшу
+    function isDiplomaExists(
+        string calldata _studentName,
+        string calldata _universityName,
+        uint256 _year
+    ) external view returns (bool) {
+        bytes32 hash = keccak256(abi.encodePacked(
+            _studentName,
+            _universityName,
+            _year
+        ));
+        return diplomaHashes[hash];
     }
 }

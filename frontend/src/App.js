@@ -1,27 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
+import AddDiplomPage from './AddDiplomPage';
 import LoginPage from './LoginPage';
-import DiplomApp from './AddDiplomPage'; // Убедитесь в правильности имени
-import DiplomViewer from './VieDiplomPage'; // Используйте текущее имя файла
 
 function App() {
-  const [role, setRole] = useState(null);
-
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    const savedRole = localStorage.getItem('role');
-    if (token && savedRole) {
-      setRole(savedRole);
-    }
-  }, []);
+  const [user, setUser] = useState(null);
 
   return (
-    <div>
-      {!role ? (
-        <LoginPage onLogin={setRole} />
-      ) : role === 'admin' ? (
-        <DiplomApp />
+    <div className="App">
+      {!user ? (
+        <LoginPage onLogin={setUser} />
       ) : (
-        <DiplomViewer />
+        <>
+          <button onClick={() => setUser(null)}>Выйти</button>
+          {user.role === 'admin' && <AddDiplomPage />}
+        </>
       )}
     </div>
   );

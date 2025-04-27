@@ -1,38 +1,57 @@
-const express = require('express');
-const router = express.Router();
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 const pool = require('../db');
 
-router.post('/login', async (req, res) => {
-  const { username, password } = req.body;
-
+router.post('/register', async (req, res) => {
   try {
-    const user = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+    const { username, password, role } = req.body;
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(password, salt);
     
-    if (user.rows.length === 0) {
-      return res.status(401).json({ error: 'Неверные учетные данные' });
-    }
-
-    const validPassword = await bcrypt.compare(password, user.rows[0].password_hash);
-    if (!validPassword) {
-      return res.status(401).json({ error: 'Неверные учетные данные' });
-    }
-
-    const token = jwt.sign(
-      { userId: user.rows[0].user_id, role: user.rows[0].role },
-      process.env.JWT_SECRET || 'secret_key',
-      { expiresIn: '1h' }
+    await pool.query(
+      `INSERT INTO users 
+       (username, password_hash, password_visible, salt, role, created_at) 
+       VALUES ($1, $2, $3, $4, $5, NOW())`,
+      [username, passwordHash, password, salt, role || 'user']
     );
-
-    res.json({ 
-      token,
-      role: user.rows[0].role 
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Ошибка сервера' });
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Registration error:', error);
+    res.status(500).json({ error: 'Registration failed' });
   }
 });
 
-module.exports = router;
+router.post('/login', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    const user = await pool.query(
+      'SELECT * FROM users WHERE username = $1', 
+      [username]
+    );
+
+    if (user.rows.length === 0) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    const validPassword = await bcrypt.compare(
+      password, 
+      user.rows[0].password_hash
+    );
+    
+    if (!validPassword) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    res.json({ 
+      success: true,
+      user: {
+        id: user.rows[0].user_id,
+        username: user.rows[0].username,
+        role: user.rows[0].role
+      }
+    });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});

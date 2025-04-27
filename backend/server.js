@@ -1,39 +1,51 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-require('dotenv').config();
+const { Pool } = require('pg');
 
+// Инициализация приложения
 const app = express();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-// Routes
-const authRoutes = require('./routes/auth');
-const diplomasRoutes = require('./routes/diplomas');
-
-app.use('/api/auth', authRoutes);
-app.use('/api/diplomas', diplomasRoutes);
-
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+// Подключение к PostgreSQL
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL
 });
 
-const { addDiploma } = require('./blockchain');
-
-// Тестовый вызов (удалите после проверки)
-async function test() {
+// Тестовый маршрут
+app.get('/', async (req, res) => {
   try {
-    const result = await addDiploma(
-      "Иванов Иван",
-      "МГУ",
-      2023
-    );
-    console.log('Транзакция успешна:', result);
+    const result = await pool.query('SELECT NOW()');
+    res.json({
+      status: 'API работает',
+      dbTime: result.rows[0].now
+    });
   } catch (err) {
-    console.error('Ошибка:', err);
+    console.error('Ошибка БД:', err);
+    res.status(500).json({ error: 'Ошибка подключения к БД' });
   }
-}
+});
 
-test();
+// Обработка необработанных ошибок
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+// Запуск сервера
+const PORT = process.env.PORT || 5000;
+const server = app.listen(PORT, () => {
+  console.log(`Сервер запущен на порту ${PORT}`);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM signal received');
+  server.close(() => {
+    pool.end();
+    console.log('Сервер остановлен');
+    process.exit(0);
+  });
+});

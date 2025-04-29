@@ -1,55 +1,31 @@
+// backend/blockchain.js
+
 const { ethers } = require('ethers');
-const path = require('path');
+const diplomaContractABI = require('./contracts/abi/DiplomaContract.json'); // ABI контракта
 require('dotenv').config();
 
-// Исправленный путь к ABI
-const contractABI = require(path.join(__dirname, 'contracts', 'abi', 'DiplomaContract.json'));
-
-// Инициализация провайдера
-const provider = new ethers.JsonRpcProvider(process.env.BLOCKCHAIN_URL);
-
-// Инициализация кошелька
+// Настройки подключения к блокчейну
+const provider = new ethers.JsonRpcProvider(process.env.RPC_URL); // RPC_URL берем из .env
 const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
 
-// Инициализация контракта
-const contract = new ethers.Contract(
-  process.env.CONTRACT_ADDRESS,
-  contractABI,
-  wallet
-);
+// Адрес развернутого контракта
+const contractAddress = process.env.CONTRACT_ADDRESS;
 
-// Методы для работы с контрактом
-const storeInBlockchain = async (studentName, universityName, year, diplomaHash) => {
-  const tx = await contract.addDiploma(studentName, universityName, year, diplomaHash);
-  const receipt = await tx.wait();
-  return {
-    txHash: receipt.hash,
-    blockNumber: receipt.blockNumber
-  };
-};
+// Подключение к контракту
+const contract = new ethers.Contract(contractAddress, diplomaContractABI.abi, wallet);
 
-const getDiplomasFromBlockchain = async () => {
-  const count = await contract.getDiplomasCount();
-  const diplomas = [];
-  
-  for (let i = 0; i < Number(count); i++) {
-    const diploma = await contract.diplomas(i);
-    diplomas.push({
-      id: i,
-      studentName: diploma[0],
-      universityName: diploma[1],
-      year: Number(diploma[2]),
-      diplomaHash: diploma[3]
-    });
-  }
-  
-  return diplomas;
-};
+// Функция для добавления диплома в блокчейн
+async function addDiplomaToBlockchain({ studentName, university, degree, graduationYear }) {
+    try {
+        const tx = await contract.addDiploma(studentName, university, degree, graduationYear);
+        const receipt = await tx.wait(); // Ждем подтверждения транзакции
+        return receipt;
+    } catch (error) {
+        console.error('Ошибка при отправке диплома в блокчейн:', error);
+        throw error;
+    }
+}
 
 module.exports = {
-  contract,
-  provider,
-  wallet,
-  storeInBlockchain,
-  getDiplomasFromBlockchain
+    addDiplomaToBlockchain
 };

@@ -1,45 +1,85 @@
-import { useState } from 'react';
-import { ethers } from 'ethers';
-import { contractAddress, contractABI } from '../utils/contractConfig';
+// frontend/src/components/AddDiplomaForm.js
 
-export default function AddDiplomaForm({ user }) {
-  const [formData, setFormData] = useState({
-    studentName: '',
-    universityName: '',
-    year: ''
-  });
+import React, { useState } from 'react';
+import axios from 'axios';
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      const contract = new ethers.Contract(contractAddress, contractABI, signer);
+const AddDiplomaForm = () => {
+    const [studentName, setStudentName] = useState('');
+    const [university, setUniversity] = useState('');
+    const [degree, setDegree] = useState('');
+    const [graduationYear, setGraduationYear] = useState('');
+    const [message, setMessage] = useState('');
 
-      const diplomaHash = ethers.keccak256(
-        ethers.toUtf8Bytes(JSON.stringify(formData))
-      );
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await axios.post('http://localhost:5000/api/diplomas', {
+                studentName,
+                university,
+                degree,
+                graduationYear
+            });
 
-      const tx = await contract.addDiploma(
-        formData.studentName,
-        formData.universityName,
-        formData.year,
-        diplomaHash
-      );
-      await tx.wait();
-      alert('Диплом успешно добавлен в блокчейн!');
-    } catch (error) {
-      console.error('Error:', error);
-      alert('Ошибка: ' + error.message);
-    }
-  };
+            console.log('Ответ сервера:', response.data);
+            setMessage('Диплом успешно добавлен!');
+            
+            // Очистить форму
+            setStudentName('');
+            setUniversity('');
+            setDegree('');
+            setGraduationYear('');
+        } catch (error) {
+            console.error('Ошибка при добавлении диплома:', error);
+            setMessage('Ошибка при добавлении диплома.');
+        }
+    };
 
-  return (
-    <div className="form-container">
-      <h2>Добавить диплом</h2>
-      <form onSubmit={handleSubmit}>
-        {/* Поля формы */}
-      </form>
-    </div>
-  );
-}
+    return (
+        <div className="add-diploma-form">
+            <h2>Добавить диплом</h2>
+            <form onSubmit={handleSubmit}>
+                <div>
+                    <label>Имя студента:</label>
+                    <input
+                        type="text"
+                        value={studentName}
+                        onChange={(e) => setStudentName(e.target.value)}
+                        required
+                    />
+                </div>
+                <div>
+                    <label>Университет:</label>
+                    <input
+                        type="text"
+                        value={university}
+                        onChange={(e) => setUniversity(e.target.value)}
+                        required
+                    />
+                </div>
+                <div>
+                    <label>Степень:</label>
+                    <input
+                        type="text"
+                        value={degree}
+                        onChange={(e) => setDegree(e.target.value)}
+                        required
+                    />
+                </div>
+                <div>
+                    <label>Год окончания:</label>
+                    <input
+                        type="number"
+                        value={graduationYear}
+                        onChange={(e) => setGraduationYear(e.target.value)}
+                        required
+                    />
+                </div>
+                <button type="submit">Добавить диплом</button>
+            </form>
+
+            {message && <p>{message}</p>}
+        </div>
+    );
+};
+
+export default AddDiplomaForm;

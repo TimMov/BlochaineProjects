@@ -12,7 +12,7 @@ const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
 const contractAddress = process.env.CONTRACT_ADDRESS;
 
 // Подключение к контракту
-const contract = new ethers.Contract(contractAddress, diplomaContractABI.abi, wallet);
+const contract = new ethers.Contract(contractAddress, diplomaContractABI, wallet);
 
 // Функция для добавления диплома в блокчейн
 async function addDiplomaToBlockchain({ studentName, university, degree, graduationYear }) {

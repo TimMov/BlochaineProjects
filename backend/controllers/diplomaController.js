@@ -10,44 +10,51 @@ const contract = new ethers.Contract(contractAddress, contractJson.abi, wallet);
 
 async function addDiploma(req, res) {
   try {
-    const { studentName, universityName, year, diplomaHash } = req.body;
+    const {
+      student_name: studentName,
+      university_name: universityName,
+      graduation_year: year,
+      degree_type: degreeType
+    } = req.body;
 
-    // 3. Валидация входных данных
-    if (!studentName || !universityName || !year || !diplomaHash) {
-      
-      return res.status(400).json({ error: 'Все поля обязательны для заполнения' + studentName + universityName + year + diplomaHash });
+    // Проверка наличия всех полей
+    if (
+      typeof studentName !== 'string' || studentName.trim() === '' ||
+      typeof universityName !== 'string' || universityName.trim() === '' ||
+      typeof degreeType !== 'string' || degreeType.trim() === '' ||
+      typeof year === 'undefined' || year === null || year === ''
+    ) {
+      return res.status(400).json({ error: 'Все поля обязательны для заполнения' });
     }
 
-    // 4. Проверка формата diplomaHash (пример для IPFS)
-    if (!diplomaHash.startsWith('Qm') || diplomaHash.length !== 46) {
-      return res.status(400).json({ error: 'Некорректный формат хэша диплома' });
+    const validDegrees = ['bachelor', 'master', 'phd', 'doctor'];
+    if (!validDegrees.includes(degreeType)) {
+      return res.status(400).json({ error: 'Недопустимое значение степени' });
     }
 
-    console.log('Попытка добавления диплома:', { studentName, universityName, year, diplomaHash });
+    console.log('Попытка добавления диплома:', { studentName, universityName, year, degreeType });
 
-    // 5. Добавление в блокчейн с обработкой газа
-    const tx = await contract.addDiploma(studentName, universityName, year, diplomaHash, {
+    // Вызов контракта (предполагаем, что контракт теперь принимает degreeType вместо diplomaHash)
+    const tx = await contract.addDiploma(studentName, universityName, year, degreeType, {
       gasLimit: 500000,
       gasPrice: ethers.parseUnits('10', 'gwei')
     });
 
     console.log('Транзакция отправлена, хэш:', tx.hash);
 
-    // 6. Ожидание подтверждения
     const receipt = await tx.wait();
     console.log('Транзакция подтверждена в блоке:', receipt.blockNumber);
 
-    // 7. Сохранение в базу данных
+    // Сохраняем в БД
     const savedDiploma = await saveDiplomaToDB({
       studentName,
       universityName,
       year,
-      diplomaHash,
+      degreeType,
       txHash: tx.hash,
       blockNumber: receipt.blockNumber
     });
 
-    // 8. Успешный ответ
     return res.status(201).json({
       success: true,
       message: 'Диплом успешно добавлен',
@@ -63,7 +70,6 @@ async function addDiploma(req, res) {
       stack: error.stack
     });
 
-    // 9. Специфичные ошибки Ethers.js
     if (error.code === 'INVALID_ARGUMENT') {
       return res.status(400).json({ error: 'Некорректные параметры транзакции' });
     }

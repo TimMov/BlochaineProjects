@@ -1,12 +1,12 @@
 const db = require('../db');
 
-async function saveDiplomaToDB({ studentName, universityName, year, diplomaHash }) {
+async function saveDiplomaToDB({ studentName, universityName, year, degree_Type, txHash, blockNumber }) {
   const query = `
-    INSERT INTO diplomas (student_name, university_name, year, diploma_hash)
-    VALUES ($1, $2, $3, $4)
+    INSERT INTO diplomas (student_name, university_name, year, degree_Type, tx_Hash, block_Number)
+    VALUES ($1, $2, $3, $4, $5, $6)
     RETURNING *;
   `;
-  const values = [studentName, universityName, year, diplomaHash];
+  const values = [studentName, universityName, year, degree_Type, txHash, blockNumber];
   const result = await db.query(query, values);
   return result.rows[0];
 }

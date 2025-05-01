@@ -6,10 +6,10 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const AddDiplomaForm = () => {
   const [formData, setFormData] = useState({
-    studentName: '',
-    universityName: '',
-    year: new Date().getFullYear().toString(),
-    degree: 'bachelor'
+    student_name: '', // Изменено с studentName для соответствия серверу
+    university_name: '', // Изменено с universityName
+    graduation_year: new Date().getFullYear().toString(), // Изменено с year
+    degree_type: 'bachelor' // Изменено с degree
   });
 
   const [error, setError] = useState('');
@@ -31,34 +31,45 @@ const AddDiplomaForm = () => {
     }));
   };
 
+  const validateForm = () => {
+    const errors = [];
+    if (!formData.student_name.trim()) errors.push('Укажите ФИО студента');
+    if (!formData.university_name.trim()) errors.push('Укажите университет');
+    if (!formData.graduation_year || isNaN(formData.graduation_year)) {
+      errors.push('Год должен быть числом');
+    } else if (formData.graduation_year.length !== 4) {
+      errors.push('Год должен состоять из 4 цифр');
+    }
+    return errors;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
-    setSuccess(false);
+
+    // Валидация
+    const errors = validateForm();
+    if (errors.length > 0) {
+      setError(errors.join('\n'));
+      setIsLoading(false);
+      return;
+    }
 
     try {
-      // Валидация на клиенте
-      const errors = [];
-      if (!formData.studentName.trim()) errors.push('Укажите ФИО студента');
-      if (!formData.universityName.trim()) errors.push('Укажите университет');
-      if (!formData.year || isNaN(formData.year)) errors.push('Год должен быть числом');
-      if (formData.year.length !== 4) errors.push('Год должен состоять из 4 цифр');
-      
-      if (errors.length > 0) {
-        throw new Error(errors.join('\n'));
-      }
-
-      // Подготовка данных для сервера
+      // Подготовка данных (теперь ключи соответствуют ожиданиям сервера)
       const payload = {
-        student_name: formData.studentName.trim(), // Исправлено для соответствия серверу
-        university_name: formData.universityName.trim(),
-        graduation_year: parseInt(formData.year), // Исправлено для соответствия серверу
-        degree_type: formData.degree // Исправлено для соответствия серверу
+        student_name: formData.student_name.trim(),
+        university_name: formData.university_name.trim(),
+        graduation_year: parseInt(formData.graduation_year),
+        degree_type: formData.degree_type
       };
 
-      console.log('Отправляемые данные:', payload);
-      console.log('URL запроса:', `${API_BASE_URL}/api/diplomas`);
+      // Проверка токена
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Требуется авторизация');
+      }
 
       // Отправка запроса
       const response = await axios.post(
@@ -67,102 +78,77 @@ const AddDiplomaForm = () => {
         {
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            'Authorization': `Bearer ${token}`
           },
           timeout: 15000
         }
       );
 
-      // Обработка ответа сервера
-      if (!response.data.success) {
-        throw new Error(response.data.message || 'Ошибка при сохранении данных');
-      }
-
-      // Успешное завершение
-      setSuccess(true);
-      setFormData({
-        studentName: '',
-        universityName: '',
-        year: new Date().getFullYear().toString(),
-        degree: 'bachelor'
-      });
-
-    } catch (err) {
-      let errorMessage = 'Произошла ошибка';
-      
-      if (err.response?.data?.error) {
-        // Ошибка валидации от сервера
-        errorMessage = err.response.data.error;
-      } else if (err.response) {
-        // Другие ошибки сервера
-        errorMessage = `Ошибка сервера: ${err.response.status}`;
-        if (err.response.data.message) {
-          errorMessage += ` (${err.response.data.message})`;
-        }
-      } else if (err.request) {
-        // Ошибки сети
-        errorMessage = `Сервер не отвечает. Проверьте:\n1. Запущен ли бэкенд на ${API_BASE_URL}\n2. Настройки CORS\n3. Сетевое подключение`;
+      // Успешный ответ
+      if (response.data?.success) {
+        setSuccess(true);
+        setFormData({
+          student_name: '',
+          university_name: '',
+          graduation_year: new Date().getFullYear().toString(),
+          degree_type: 'bachelor'
+        });
       } else {
-        // Другие ошибки
-        errorMessage = err.message;
+        throw new Error(response.data?.message || 'Ошибка сервера');
       }
-
-      setError(errorMessage);
-      console.error('Детали ошибки:', {
-        error: err,
-        requestData: err.config?.data,
-        response: err.response?.data
-      });
+    } catch (err) {
+      handleApiError(err);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleApiError = (err) => {
+    let errorMessage = 'Ошибка при отправке данных';
+    if (err.response?.data?.error) {
+      errorMessage = err.response.data.error;
+    } else if (err.response?.status === 401) {
+      errorMessage = 'Ошибка авторизации. Проверьте токен.';
+    } else if (err.message) {
+      errorMessage = err.message;
+    }
+    setError(errorMessage);
   };
 
   return (
     <div className="diploma-form-container">
       <h2 className="form-title">Добавление диплома</h2>
       
-      {/* Блок ошибок */}
       {error && (
         <div className="error-message">
           {error.split('\n').map((line, i) => (
             <p key={i}>{line}</p>
           ))}
-          <button 
-            onClick={() => setError('')} 
-            className="close-button"
-            aria-label="Закрыть ошибку"
-          >
-            &times;
-          </button>
-        </div>
-      )}
-      
-      {/* Блок успеха */}
-      {success && (
-        <div className="success-message">
-          <p>Диплом успешно добавлен!</p>
-          <button 
-            onClick={() => setSuccess(false)} 
-            className="close-button"
-            aria-label="Закрыть уведомление"
-          >
+          <button onClick={() => setError('')} className="close-button">
             &times;
           </button>
         </div>
       )}
 
-      {/* Форма */}
+      {success && (
+        <div className="success-message">
+          <p>Диплом успешно добавлен!</p>
+          <button onClick={() => setSuccess(false)} className="close-button">
+            &times;
+          </button>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="diploma-form" noValidate>
         <div className="form-group">
-          <label htmlFor="studentName" className="form-label">
+          <label htmlFor="student_name" className="form-label">
             ФИО студента*
           </label>
           <input
             type="text"
-            id="studentName"
-            name="studentName"
-            value={formData.studentName}
+            id="student_name"
+            name="student_name"
+            value={formData.student_name}
             onChange={handleChange}
             className="form-input"
             required
@@ -171,14 +157,14 @@ const AddDiplomaForm = () => {
         </div>
 
         <div className="form-group">
-          <label htmlFor="universityName" className="form-label">
+          <label htmlFor="university_name" className="form-label">
             Университет*
           </label>
           <input
             type="text"
-            id="universityName"
-            name="universityName"
-            value={formData.universityName}
+            id="university_name"
+            name="university_name"
+            value={formData.university_name}
             onChange={handleChange}
             className="form-input"
             required
@@ -187,14 +173,14 @@ const AddDiplomaForm = () => {
         </div>
 
         <div className="form-group">
-          <label htmlFor="year" className="form-label">
+          <label htmlFor="graduation_year" className="form-label">
             Год выпуска*
           </label>
           <input
             type="number"
-            id="year"
-            name="year"
-            value={formData.year}
+            id="graduation_year"
+            name="graduation_year"
+            value={formData.graduation_year}
             onChange={handleChange}
             className="form-input"
             required
@@ -205,13 +191,13 @@ const AddDiplomaForm = () => {
         </div>
 
         <div className="form-group">
-          <label htmlFor="degree" className="form-label">
+          <label htmlFor="degree_type" className="form-label">
             Академическая степень*
           </label>
           <select
-            id="degree"
-            name="degree"
-            value={formData.degree}
+            id="degree_type"
+            name="degree_type"
+            value={formData.degree_type}
             onChange={handleChange}
             className="form-select"
             required
@@ -227,16 +213,9 @@ const AddDiplomaForm = () => {
         <button 
           type="submit" 
           disabled={isLoading}
-          className="submit-button"
+          className={`submit-button ${isLoading ? 'loading' : ''}`}
         >
-          {isLoading ? (
-            <>
-              <span className="spinner"></span>
-              Отправка...
-            </>
-          ) : (
-            'Добавить диплом'
-          )}
+          {isLoading ? 'Отправка...' : 'Добавить диплом'}
         </button>
       </form>
     </div>

@@ -14,7 +14,8 @@ async function addDiploma(req, res) {
 
     // 3. Валидация входных данных
     if (!studentName || !universityName || !year || !diplomaHash) {
-      return res.status(400).json({ error: 'Все поля обязательны для заполнения' });
+      
+      return res.status(400).json({ error: 'Все поля обязательны для заполнения' + studentName + universityName + year + diplomaHash });
     }
 
     // 4. Проверка формата diplomaHash (пример для IPFS)

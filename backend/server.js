@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const diplomaRoutes = require('./routes/diplomaRoutes');
+const doplomaLogin = require('./routes/auth.js')
 require('dotenv').config();
 
 const app = express();
@@ -19,6 +20,9 @@ app.use((req, res, next) => {
 });
 
 // Маршруты
+
+app.use('/api', doplomaLogin)
+
 app.use('/api', diplomaRoutes);
 
 // Запуск сервера

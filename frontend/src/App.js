@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import AddDiplomaForm from './components/AddDiplomaForm';
 import LoginPage from './LoginPage';
+import DiplomaList from './VieDiplomPage'
 import './App.css';
 
 
@@ -66,6 +67,7 @@ function App() {
             <button onClick={handleLogout}>Выйти</button>
           </header>
           {user.role === 'admin' && <AddDiplomaForm />}
+          {user.role === 'user' && <DiplomaList />}
         </div>
       )}
       {/* <h1>Добавление дипломов в блокчейн</h1>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './AddDiplomaForm.css';
 
@@ -6,12 +6,14 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const AddDiplomaForm = () => {
   const [formData, setFormData] = useState({
-    student_name: '', // Изменено с studentName для соответствия серверу
-    university_name: '', // Изменено с universityName
-    graduation_year: new Date().getFullYear().toString(), // Изменено с year
-    degree_type: 'bachelor' // Изменено с degree
+    student_name: '',
+    university_name: '',
+    graduation_year: new Date().getFullYear().toString(),
+    degree_type: 'bachelor'
   });
 
+  const [diplomas, setDiplomas] = useState([]);
+  const [filter, setFilter] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -22,6 +24,22 @@ const AddDiplomaForm = () => {
     { value: 'phd', label: 'Кандидат наук' },
     { value: 'doctor', label: 'Доктор наук' }
   ];
+
+  useEffect(() => {
+    fetchDiplomas();
+  }, []);
+
+  const fetchDiplomas = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_BASE_URL}/api/diplomas`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setDiplomas(response.data);
+    } catch (err) {
+      console.error('Ошибка загрузки дипломов:', err);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -48,7 +66,6 @@ const AddDiplomaForm = () => {
     setError('');
     setIsLoading(true);
 
-    // Валидация
     const errors = validateForm();
     if (errors.length > 0) {
       setError(errors.join('\n'));
@@ -57,7 +74,6 @@ const AddDiplomaForm = () => {
     }
 
     try {
-      // Подготовка данных (теперь ключи соответствуют ожиданиям сервера)
       const payload = {
         student_name: formData.student_name.trim(),
         university_name: formData.university_name.trim(),
@@ -65,13 +81,11 @@ const AddDiplomaForm = () => {
         degree_type: formData.degree_type
       };
 
-      // Проверка токена
       const token = localStorage.getItem('token');
       if (!token) {
         throw new Error('Требуется авторизация');
       }
 
-      // Отправка запроса
       const response = await axios.post(
         `${API_BASE_URL}/api/diplomas`,
         payload,
@@ -84,9 +98,9 @@ const AddDiplomaForm = () => {
         }
       );
 
-      // Успешный ответ
       if (response.data?.success) {
         setSuccess(true);
+        fetchDiplomas();
         setFormData({
           student_name: '',
           university_name: '',
@@ -115,10 +129,16 @@ const AddDiplomaForm = () => {
     setError(errorMessage);
   };
 
+  const filteredDiplomas = diplomas.filter(d =>
+    d.student_name.toLowerCase().includes(filter.toLowerCase()) ||
+    d.university_name.toLowerCase().includes(filter.toLowerCase()) ||
+    d.degree_type.toLowerCase().includes(filter.toLowerCase())
+  );
+
   return (
     <div className="diploma-form-container">
       <h2 className="form-title">Добавление диплома</h2>
-      
+
       {error && (
         <div className="error-message">
           {error.split('\n').map((line, i) => (
@@ -139,85 +159,50 @@ const AddDiplomaForm = () => {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="diploma-form" noValidate>
-        <div className="form-group">
-          <label htmlFor="student_name" className="form-label">
-            ФИО студента*
-          </label>
-          <input
-            type="text"
-            id="student_name"
-            name="student_name"
-            value={formData.student_name}
-            onChange={handleChange}
-            className="form-input"
-            required
-            maxLength={100}
-          />
-        </div>
+      <div className="form-and-list-wrapper">
+        <form onSubmit={handleSubmit} className="diploma-form" noValidate>
+          <div className="form-group">
+            <label htmlFor="student_name" className="form-label">ФИО студента*</label>
+            <input type="text" id="student_name" name="student_name" value={formData.student_name} onChange={handleChange} className="form-input" required maxLength={100} />
+          </div>
 
-        <div className="form-group">
-          <label htmlFor="university_name" className="form-label">
-            Университет*
-          </label>
-          <input
-            type="text"
-            id="university_name"
-            name="university_name"
-            value={formData.university_name}
-            onChange={handleChange}
-            className="form-input"
-            required
-            maxLength={150}
-          />
-        </div>
+          <div className="form-group">
+            <label htmlFor="university_name" className="form-label">Университет*</label>
+            <input type="text" id="university_name" name="university_name" value={formData.university_name} onChange={handleChange} className="form-input" required maxLength={150} />
+          </div>
 
-        <div className="form-group">
-          <label htmlFor="graduation_year" className="form-label">
-            Год выпуска*
-          </label>
-          <input
-            type="number"
-            id="graduation_year"
-            name="graduation_year"
-            value={formData.graduation_year}
-            onChange={handleChange}
-            className="form-input"
-            required
-            min="1900"
-            max={new Date().getFullYear()}
-            step="1"
-          />
-        </div>
+          <div className="form-group">
+            <label htmlFor="graduation_year" className="form-label">Год выпуска*</label>
+            <input type="number" id="graduation_year" name="graduation_year" value={formData.graduation_year} onChange={handleChange} className="form-input" required min="1900" max={new Date().getFullYear()} step="1" />
+          </div>
 
-        <div className="form-group">
-          <label htmlFor="degree_type" className="form-label">
-            Академическая степень*
-          </label>
-          <select
-            id="degree_type"
-            name="degree_type"
-            value={formData.degree_type}
-            onChange={handleChange}
-            className="form-select"
-            required
-          >
-            {degrees.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
+          <div className="form-group">
+            <label htmlFor="degree_type" className="form-label">Академическая степень*</label>
+            <select id="degree_type" name="degree_type" value={formData.degree_type} onChange={handleChange} className="form-select" required>
+              {degrees.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
+            </select>
+          </div>
+
+          <button type="submit" disabled={isLoading} className={`submit-button ${isLoading ? 'loading' : ''}`}>
+            {isLoading ? 'Отправка...' : 'Добавить диплом'}
+          </button>
+        </form>
+
+        <div className="diploma-list-section">
+          <h3>Список дипломов</h3>
+          <input type="text" placeholder="Фильтр по студенту, университету или степени..." value={filter} onChange={(e) => setFilter(e.target.value)} className="form-input filter-input" />
+
+          <ul className="diploma-list">
+            {filteredDiplomas.map((diploma, index) => (
+              <li key={index} className="diploma-item">
+                <strong>{diploma.student_name}</strong> — {diploma.university_name} — {diploma.graduation_year} — {degrees.find(d => d.value === diploma.degree_type)?.label || diploma.degree_type}
+              </li>
             ))}
-          </select>
+          </ul>
         </div>
-
-        <button 
-          type="submit" 
-          disabled={isLoading}
-          className={`submit-button ${isLoading ? 'loading' : ''}`}
-        >
-          {isLoading ? 'Отправка...' : 'Добавить диплом'}
-        </button>
-      </form>
+      </div>
     </div>
   );
 };

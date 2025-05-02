@@ -17,3 +17,17 @@ app.use('/api/auth', authRoutes); // <-- Добавлено
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
+app.get('/api/diplomas', async (req, res) => {
+  try {
+    const result = await db.query(`
+      SELECT id, student_name, university_name, graduation_year, degree_type 
+      FROM diplomas 
+      ORDER BY graduation_year DESC
+    `);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Ошибка при получении дипломов:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});

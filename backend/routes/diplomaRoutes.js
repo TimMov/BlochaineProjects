@@ -3,6 +3,6 @@ const router = express.Router();
 const { addDiploma } = require('../controllers/diplomaController');
 
 // POST /api/diplomas
-router.post('/diplomas', addDiploma);
+router.post('/', addDiploma);
 
 module.exports = router;

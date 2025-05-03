@@ -1,9 +1,13 @@
 import React from 'react';
 
-export default function DiplomasList({ diplomas }) {
-  if (!diplomas || diplomas.length === 0) {
-    return <div>Нет дипломов для отображения.</div>;
+export default function DiplomasList({ diplomas = [] }) {
+  if (!Array.isArray(diplomas)) diplomas = [];
+
+  if (diplomas.length === 0) {
+    return <div>Нет доступных дипломов.</div>;
   }
+
+  console.log(diplomas);  // Посмотреть, что приходит в diplomas
 
   return (
     <div className="diplomas-list">

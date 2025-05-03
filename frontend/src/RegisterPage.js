@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import axios from 'axios';
 
-const LoginPage = ({ onLogin }) => {
+const RegisterPage = () => {
   const [inputs, setInputs] = useState({ username: '', password: '' });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -12,19 +12,15 @@ const LoginPage = ({ onLogin }) => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/login', inputs);
+      const response = await axios.post('http://localhost:5000/api/auth/register', inputs);
       
-      // Проверяем структуру ответа перед передачей
-      if (!response.data?.user) {
-        throw new Error('Некорректный ответ сервера');
+      if (response.data.success) {
+        window.location.href = '/login';  // Перенаправление на страницу логина
+      } else {
+        throw new Error(response.data.message);
       }
-      
-      onLogin(response.data); // Передаём весь объект ответа
     } catch (err) {
-      const message = err.response?.data?.message || 
-                     err.message || 
-                     'Ошибка соединения';
-      setError(message);
+      setError(err.message || 'Ошибка соединения');
     } finally {
       setIsLoading(false);
     }
@@ -34,13 +30,9 @@ const LoginPage = ({ onLogin }) => {
     setInputs({ ...inputs, [e.target.name]: e.target.value });
   };
 
-  const handleGoToRegister = () => {
-    window.location.href = '/register'; // Переход на страницу регистрации
-  };
-
   return (
-    <div className="login-form">
-      <h2>Вход в систему</h2>
+    <div className="register-form">
+      <h2>Регистрация</h2>
       {error && <div className="error">{error}</div>}
       <form onSubmit={handleSubmit}>
         <input
@@ -59,14 +51,11 @@ const LoginPage = ({ onLogin }) => {
           required
         />
         <button type="submit" disabled={isLoading}>
-          {isLoading ? 'Вход...' : 'Войти'}
+          {isLoading ? 'Регистрация...' : 'Зарегистрироваться'}
         </button>
       </form>
-      <button onClick={handleGoToRegister}>
-        Зарегистрироваться
-      </button>
     </div>
   );
 };
 
-export default LoginPage;
+export default RegisterPage;

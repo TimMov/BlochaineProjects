@@ -1,38 +1,208 @@
 [
-    {
-      "inputs": [],
-      "stateMutability": "nonpayable",
-      "type": "constructor"
-    },
-    {
-      "inputs": [
-        {"internalType": "string","name": "_studentName","type": "string"},
-        {"internalType": "string","name": "_universityName","type": "string"},
-        {"internalType": "uint256","name": "_year","type": "uint256"},
-        {"internalType": "string","name": "_diplomaHash","type": "string"}
-      ],
-      "name": "addDiploma",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [{"internalType": "uint256","name": "","type": "uint256"}],
-      "name": "diplomas",
-      "outputs": [
-        {"internalType": "string","name": "studentName","type": "string"},
-        {"internalType": "string","name": "universityName","type": "string"},
-        {"internalType": "uint256","name": "year","type": "uint256"},
-        {"internalType": "string","name": "diplomaHash","type": "string"}
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "getDiplomasCount",
-      "outputs": [{"internalType": "uint256","name": "","type": "uint256"}],
-      "stateMutability": "view",
-      "type": "function"
-    }
-  ]
+  {
+    "inputs": [],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "id",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "studentName",
+        "type": "string"
+      }
+    ],
+    "name": "DiplomaAdded",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "_studentName",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "_universityName",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_year",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "_diplomaHash",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "_diplomaSeries",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "_diplomaNumber",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "_registrationNumber",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "_specialty_code",
+        "type": "string"
+      }
+    ],
+    "name": "addDiploma",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "diplomas",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "studentName",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "universityName",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "year",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "diplomaHash",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "diplomaSeries",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "diplomaNumber",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "registrationNumber",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "specialty_code",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "index",
+        "type": "uint256"
+      }
+    ],
+    "name": "getDiploma",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getDiplomasCount",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "owner",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]

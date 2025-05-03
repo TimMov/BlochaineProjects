@@ -1,27 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './AddDiplomaForm.css';
-import DiplomasList from './DiplomaList';
 
+// API адрес
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const AddDiplomaForm = () => {
-  // Состояния формы
   const [formData, setFormData] = useState({
     student_name: '',
     university_name: '',
     graduation_year: new Date().getFullYear().toString(),
-    degree_type: 'bachelor'
+    degree_type: 'bachelor',
+    diploma_series: '',
+    diploma_number: '',
+    registration_number: '',
+    specialty_code: ''
   });
 
-  // Состояния списка дипломов
   const [diplomas, setDiplomas] = useState([]);
   const [filter, setFilter] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
-  // Опции для выбора степени
   const degrees = [
     { value: 'bachelor', label: 'Бакалавр' },
     { value: 'master', label: 'Магистр' },
@@ -29,12 +30,10 @@ const AddDiplomaForm = () => {
     { value: 'doctor', label: 'Доктор наук' }
   ];
 
-  // Загрузка дипломов при монтировании
   useEffect(() => {
     fetchDiplomas();
   }, []);
 
-  // Получение дипломов из БД
   const fetchDiplomas = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -48,28 +47,33 @@ const AddDiplomaForm = () => {
     }
   };
 
-  // Обработчик изменений формы
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // Валидация формы
   const validateForm = () => {
     const errors = [];
-    if (!formData.student_name.trim()) errors.push('Укажите ФИО студента');
-    if (!formData.university_name.trim()) errors.push('Укажите университет');
-    if (!formData.graduation_year || isNaN(formData.graduation_year)) {
-      errors.push('Год должен быть числом');
-    } else if (formData.graduation_year.length !== 4) {
-      errors.push('Год должен состоять из 4 цифр');
-    } else if (parseInt(formData.graduation_year) > new Date().getFullYear()) {
-      errors.push('Год выпуска не может быть в будущем');
-    }
+    const { student_name, university_name, diploma_series, diploma_number, registration_number, specialty_code, graduation_year } = formData;
+
+    if (!student_name.trim()) errors.push('Укажите ФИО студента');
+    if (!university_name.trim()) errors.push('Укажите университет');
+    if (!diploma_series.trim()) errors.push('Укажите серию диплома');
+    if (!diploma_number.trim()) errors.push('Укажите номер диплома');
+    if (!registration_number.trim()) errors.push('Укажите регистрационный номер');
+    if (!specialty_code.trim()) errors.push('Укажите код специальности');
+    if (!graduation_year || isNaN(graduation_year)) errors.push('Год должен быть числом');
+    if (graduation_year.length !== 4) errors.push('Год должен состоять из 4 цифр');
+    if (parseInt(graduation_year) > new Date().getFullYear()) errors.push('Год выпуска не может быть в будущем');
+
+    if (diploma_series.length !== 6) errors.push('Серия диплома должна быть 6 символов');
+    if (diploma_number.length !== 7) errors.push('Номер диплома должен быть 7 символов');
+    if (registration_number.length !== 6) errors.push('Регистрационный номер должен быть 6 символов');
+    if (specialty_code.length !== 8) errors.push('Код специальности должен быть 8 символов');
+
     return errors;
   };
 
-  // Отправка формы
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -84,10 +88,14 @@ const AddDiplomaForm = () => {
 
     try {
       const payload = {
-        student_name: formData.student_name.trim(),
-        university_name: formData.university_name.trim(),
-        graduation_year: parseInt(formData.graduation_year),
-        degree_type: formData.degree_type
+        studentName: formData.student_name.trim(),
+        universityName: formData.university_name.trim(),
+        year: parseInt(formData.graduation_year),
+        degree_type: formData.degree_type,
+        diplomaSeries: formData.diploma_series.trim(),
+        diplomaNumber: formData.diploma_number.trim(),
+        registrationNumber: formData.registration_number.trim(),
+        specialty_code: formData.specialty_code.trim()
       };
 
       const token = localStorage.getItem('token');
@@ -110,9 +118,13 @@ const AddDiplomaForm = () => {
           student_name: '',
           university_name: '',
           graduation_year: new Date().getFullYear().toString(),
-          degree_type: 'bachelor'
+          degree_type: 'bachelor',
+          diploma_series: '',
+          diploma_number: '',
+          registration_number: '',
+          specialty_code: ''
         });
-        await fetchDiplomas(); // Обновляем список после успешного добавления
+        await fetchDiplomas();
       }
     } catch (err) {
       handleApiError(err);
@@ -121,7 +133,6 @@ const AddDiplomaForm = () => {
     }
   };
 
-  // Обработка ошибок API
   const handleApiError = (err) => {
     let errorMessage = 'Ошибка при отправке данных';
     if (err.response?.data?.error) {
@@ -134,13 +145,12 @@ const AddDiplomaForm = () => {
     setError(errorMessage);
   };
 
-  // Фильтрация дипломов
   const filteredDiplomas = diplomas.filter(d =>
-    d.student_name.toLowerCase().includes(filter.toLowerCase()) ||
-    d.university_name.toLowerCase().includes(filter.toLowerCase()) ||
-    d.degree_type.toLowerCase().includes(filter.toLowerCase())
+    (d.student_name && d.student_name.toLowerCase().includes(filter.toLowerCase())) ||
+    (d.university_name && d.university_name.toLowerCase().includes(filter.toLowerCase())) ||
+    (d.degree_type && d.degree_type.toLowerCase().includes(filter.toLowerCase()))
   );
-  
+
   return (
     <div className="diploma-container">
       <h2 className="form-title">Добавление диплома</h2>
@@ -166,8 +176,8 @@ const AddDiplomaForm = () => {
         </div>
       )}
 
-      <div className="form-and-list-container">
-        {/* Форма добавления */}
+      <div className="form-and-table-container">
+        {/* Форма добавления диплома */}
         <form onSubmit={handleSubmit} className="diploma-form">
           <div className="form-group">
             <label>ФИО студента*</label>
@@ -207,6 +217,54 @@ const AddDiplomaForm = () => {
           </div>
 
           <div className="form-group">
+            <label>Серия диплома*</label>
+            <input
+              type="text"
+              name="diploma_series"
+              value={formData.diploma_series}
+              onChange={handleChange}
+              required
+              maxLength={6}
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Номер диплома*</label>
+            <input
+              type="text"
+              name="diploma_number"
+              value={formData.diploma_number}
+              onChange={handleChange}
+              required
+              maxLength={7}
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Регистрационный номер*</label>
+            <input
+              type="text"
+              name="registration_number"
+              value={formData.registration_number}
+              onChange={handleChange}
+              required
+              maxLength={6}
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Код специальности*</label>
+            <input
+              type="text"
+              name="specialty_code"
+              value={formData.specialty_code}
+              onChange={handleChange}
+              required
+              maxLength={8}
+            />
+          </div>
+
+          <div className="form-group">
             <label>Академическая степень*</label>
             <select
               name="degree_type"
@@ -227,13 +285,45 @@ const AddDiplomaForm = () => {
           </button>
         </form>
 
-        {/* Список дипломов */}
-        <div className="list-section">
-        <DiplomasList diplomas={filteredDiplomas} />
+        {/* Таблица дипломов */}
+        <div className="table-section">
+          <div className="form-group">
+            <label>Поиск по дипломам</label>
+            <input
+              type="text"
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              placeholder="Введите ФИО, вуз или степень"
+            />
+          </div>
+
+          <table className="diploma-table">
+            <thead>
+              <tr>
+                <th>ФИО студента</th>
+                <th>Университет</th>
+                <th>Степень</th>
+                <th>Серия диплома</th>
+                <th>Номер диплома</th>
+                <th>Рег. номер</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredDiplomas.map((diploma) => (
+                <tr key={diploma.id}>
+                  <td>{diploma.student_name}</td>
+                  <td>{diploma.university_name}</td>
+                  <td>{degrees.find(d => d.value === diploma.degree_type)?.label || diploma.degree_type}</td>
+                  <td>{diploma.diploma_series}</td>
+                  <td>{diploma.diploma_number}</td>
+                  <td>{diploma.registration_number}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
-      </div>
-  
   );
 };
 

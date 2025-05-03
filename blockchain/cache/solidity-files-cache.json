@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "D:\\Goland\\BlochaineProjects\\blockchain\\contracts\\ItContract.sol": {
-      "lastModificationDate": 1745759917362,
-      "contentHash": "eee6b95e6d0391e2cb92011b37bb2059",
+      "lastModificationDate": 1746269146429,
+      "contentHash": "f4627e6186f5e5e389c9906decd8e1f4",
       "sourceName": "contracts/ItContract.sol",
       "solcConfig": {
         "version": "0.8.28",

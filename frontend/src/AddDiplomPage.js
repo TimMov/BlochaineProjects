@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ethers } from 'ethers';
+const diplomaContractABI = require('D:\Goland\BlochaineProjects\backend\contracts\abi\DiplomaContract.json');
 
 export default function AddDiplomPage() {
   const [formData, setFormData] = useState({
@@ -19,23 +20,9 @@ export default function AddDiplomPage() {
       const signer = await provider.getSigner();
       
       // Адрес и ABI должны быть в этом же файле
-      const contractAddress = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0";
-      const contractABI = [
-        {
-          "inputs": [
-            {"internalType": "string","name": "_studentName","type": "string"},
-            {"internalType": "string","name": "_universityName","type": "string"},
-            {"internalType": "uint256","name": "_year","type": "uint256"},
-            {"internalType": "string","name": "_diplomaHash","type": "string"}
-          ],
-          "name": "addDiploma",
-          "outputs": [],
-          "stateMutability": "nonpayable",
-          "type": "function"
-        }
-      ];
+      const contractAddress = process.env.CONTRACT_ADDRESS;
 
-      const contract = new ethers.Contract(contractAddress, contractABI, signer);
+      const contract = new ethers.Contract(contractAddress, diplomaContractABI, signer);
 
       const diplomaHash = ethers.keccak256(
         ethers.toUtf8Bytes(JSON.stringify(formData))

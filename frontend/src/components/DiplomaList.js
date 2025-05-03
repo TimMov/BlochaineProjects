@@ -1,26 +1,9 @@
-import { useEffect, useState } from 'react';
-import axios from 'axios';
+import React from 'react';
 
-export default function DiplomasList() {
-  const [diplomas, setDiplomas] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchDiplomas = async () => {
-      try {
-        const response = await axios.get('http://localhost:5000/api/diplomas');
-        setDiplomas(response.data);
-      } catch (error) {
-        console.error('Ошибка загрузки дипломов:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDiplomas();
-  }, []);
-
-  if (loading) return <div>Загрузка...</div>;
+export default function DiplomasList({ diplomas }) {
+  if (!diplomas || diplomas.length === 0) {
+    return <div>Нет дипломов для отображения.</div>;
+  }
 
   return (
     <div className="diplomas-list">
@@ -36,10 +19,10 @@ export default function DiplomasList() {
         </thead>
         <tbody>
           {diplomas.map((diploma) => (
-            <tr key={diploma.id}>
+            <tr key={diploma.diploma_id}>
               <td>{diploma.student_name}</td>
               <td>{diploma.university_name}</td>
-              <td>{diploma.year}</td>
+              <td>{diploma.graduation_year || diploma.year}</td>
               <td>{diploma.degree_type}</td>
             </tr>
           ))}

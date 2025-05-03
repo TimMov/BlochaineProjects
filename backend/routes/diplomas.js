@@ -68,17 +68,17 @@ router.post('/', async (req, res, next) => {
 });
 
 // Маршрут для получения списка дипломов
-router.get('/', async (req, res, next) => {
-  try {
-    const result = await pool.query(
-      `SELECT diploma_id, student_name, university_name, year, tx_hash
-       FROM diplomas
-       ORDER BY created_at DESC`
-    );
-    res.json(result.rows);
-  } catch (error) {
-    next(error);
-  }
-});
+// router.get('/', async (req, res, next) => {
+//   try {
+//     const result = await pool.query(
+//       `SELECT diploma_id, student_name, university_name, degree_type, tx_hash
+//        FROM diplomas
+//        ORDER BY created_at DESC`
+//     );
+//     res.json(result.rows);
+//   } catch (error) {
+//     next(error);
+//   }
+// });
 
 module.exports = router;  // Важно: экспортируем router, а не объект

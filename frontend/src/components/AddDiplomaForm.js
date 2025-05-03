@@ -140,7 +140,7 @@ const AddDiplomaForm = () => {
     d.university_name.toLowerCase().includes(filter.toLowerCase()) ||
     d.degree_type.toLowerCase().includes(filter.toLowerCase())
   );
-
+  
   return (
     <div className="diploma-container">
       <h2 className="form-title">Добавление диплома</h2>
@@ -229,7 +229,7 @@ const AddDiplomaForm = () => {
 
         {/* Список дипломов */}
         <div className="list-section">
-        <DiplomasList />
+        <DiplomasList diplomas={filteredDiplomas} />
       </div>
     </div>
       </div>

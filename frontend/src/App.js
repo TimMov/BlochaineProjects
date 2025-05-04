@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 import AddDiplomaForm from './components/AddDiplomaForm';
 import LoginPage from './LoginPage';
-import DiplomaList from './VieDiplomPage';
 import UserStats from './components/UserStats';
 import './App.css';
 
@@ -65,12 +64,8 @@ function App() {
             <span>Пользователь: {user.username}</span>
             <button onClick={handleLogout}>Выйти</button>
           </header>
-
-          {/* Статистика теперь доступна всем пользователям */}
-          <UserStats />
-
           {user.role === 'admin' && <AddDiplomaForm />}
-          <DiplomaList />
+          {user.role === 'user' && <UserStats />}
         </div>
       )}
     </div>

@@ -140,31 +140,26 @@ router.get('/stats/years-by-specialty', async (req, res, next) => {
     
     // Формируем данные для графика
     const data = result.rows.reduce((acc, row) => {
-      if (!acc[row.year]) {
-        acc[row.year] = {};
+      if (!acc[row.specialty_code]) {
+        acc[row.specialty_code] = {};
       }
-      acc[row.year][row.specialty_code] = row.diploma_count;
+      acc[row.specialty_code][row.year] = row.diploma_count;
       return acc;
     }, {});
 
     // Преобразуем данные для удобного отображения
-    const years = Object.keys(data);
-    const specialties = new Set();
+    const specialties = Object.keys(data);
+    const years = Array.from(new Set(Object.values(data).flatMap(item => Object.keys(item)))).sort();
 
-    years.forEach(year => {
-      Object.keys(data[year]).forEach(specialty => {
-        specialties.add(specialty);
-      });
-    });
-
-    // Формируем массивы для графика
+    // Формируем массив для графика
     const chartData = {
-      labels: years.reverse(), // Года
-      datasets: Array.from(specialties).map(specialty => ({
+      labels: years, // Года
+      datasets: specialties.map(specialty => ({
         label: `Специальность ${specialty}`,
-        data: years.map(year => data[year]?.[specialty] || 0),
-        borderColor: `#${Math.floor(Math.random()*16777215).toString(16)}`, // Генерация случайного цвета для каждой линии
+        data: years.map(year => data[specialty]?.[year] || 0), // Если данных нет для года, показываем 0
+        borderColor: `#${Math.floor(Math.random() * 16777215).toString(16)}`, // Генерация случайного цвета для каждой линии
         fill: false,
+        backgroundColor: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
       })),
     };
 

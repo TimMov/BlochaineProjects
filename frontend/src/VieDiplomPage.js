@@ -1,103 +1,51 @@
 import React, { useEffect, useState } from "react";
-import { Contract, BrowserProvider } from "ethers";
+import axios from "axios";
 
-// Адрес развернутого контракта
-const contractAddress = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
-
-// ABI контракта
-const contractAbi = [
-  {
-    inputs: [
-      { internalType: "string", name: "studentName", type: "string" },
-      { internalType: "string", name: "universityName", type: "string" },
-      { internalType: "uint256", name: "year", type: "uint256" }
-    ],
-    name: "addDiploma",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function"
-  },
-  {
-    inputs: [],
-    name: "getDiplomasCount",
-    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-    stateMutability: "view",
-    type: "function"
-  },
-  {
-    inputs: [{ internalType: "uint256", name: "index", type: "uint256" }],
-    name: "getDiploma",
-    outputs: [
-      { internalType: "string", name: "studentName", type: "string" },
-      { internalType: "string", name: "universityName", type: "string" },
-      { internalType: "uint256", name: "year", type: "uint256" }
-    ],
-    stateMutability: "view",
-    type: "function"
-  },
-  {
-    inputs: [{ internalType: "uint256", name: "index", type: "uint256" }],
-    name: "removeDiploma",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function"
-  }
-];
-
-const DiplomaViewer = () => {
+export default function DiplomaViewer() {
   const [diplomas, setDiplomas] = useState([]);
+  const [error, setError] = useState('');
 
   useEffect(() => {
+    async function loadDiplomas() {
+      try {
+        const res = await axios.get('/api/diplomas');
+        if (res.data.success) {
+          setDiplomas(res.data.diplomas);
+        } else {
+          setError('Не удалось загрузить дипломы');
+        }
+      } catch (err) {
+        console.error("Ошибка при загрузке дипломов:", err);
+        setError('Ошибка при загрузке дипломов');
+      }
+    }
+
     loadDiplomas();
   }, []);
-
-  async function loadDiplomas() {
-    try {
-      if (!window.ethereum) {
-        alert("Установите MetaMask");
-        return;
-      }
-
-      const provider = new BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      const contract = new Contract(contractAddress, contractAbi, signer);
-
-      const count = await contract.getDiplomasCount();
-      const diplomaList = [];
-
-      for (let i = 0; i < count; i++) {
-        const diploma = await contract.getDiploma(i);
-        diplomaList.push({
-          studentName: diploma[0],
-          universityName: diploma[1],
-          year: diploma[2].toString()
-        });
-      }
-
-      setDiplomas(diplomaList);
-    } catch (error) {
-      console.error("Ошибка при загрузке дипломов:", error);
-    }
-  }
 
   return (
     <div style={{ padding: "20px" }}>
       <h2>Список дипломов</h2>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
       {diplomas.length === 0 ? (
         <p>Нет дипломов для отображения.</p>
       ) : (
         <ul>
           {diplomas.map((diploma, index) => (
-            <li key={index} style={{ marginBottom: "10px" }}>
-              <strong>Имя:</strong> {diploma.studentName}<br />
-              <strong>Университет:</strong> {diploma.universityName}<br />
-              <strong>Год:</strong> {diploma.year}
+            <li key={index} style={{ marginBottom: "15px" }}>
+              <strong>ФИО:</strong> {diploma.student_name}<br />
+              <strong>Университет:</strong> {diploma.university_name}<br />
+              <strong>Год:</strong> {diploma.year}<br />
+              <strong>Серия и номер:</strong> {diploma.diploma_series} {diploma.diploma_number}<br />
+              <strong>Регистрационный №:</strong> {diploma.registration_number}<br />
+              <strong>Специальность:</strong> {diploma.specialty_code}<br />
+              <strong>Тип степени:</strong> {diploma.degree_type}<br />
+              <strong>Hash транзакции:</strong> {diploma.tx_hash}<br />
+              <strong>Блок:</strong> {diploma.block_number}
             </li>
           ))}
         </ul>
       )}
     </div>
   );
-};
-
-export default DiplomaViewer;
+}

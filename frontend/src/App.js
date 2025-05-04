@@ -1,16 +1,15 @@
+// src/App.js
 import { useState, useEffect } from 'react';
 import AddDiplomaForm from './components/AddDiplomaForm';
 import LoginPage from './LoginPage';
-import RegisterPage from './RegisterPage';  // Импортируем компонент регистрации
-import DiplomaList from './VieDiplomPage'
+import DiplomaList from './VieDiplomPage';
+import UserStats from './components/UserStats';
 import './App.css';
 
 function App() {
-
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isRegistering, setIsRegistering] = useState(false);  // Состояние для переключения между логином и регистрацией
 
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
@@ -58,11 +57,7 @@ function App() {
   return (
     <div className="App">
       {error && <div className="error">{error}</div>}
-
-      {/* Условие для показа страницы регистрации или входа */}
-      {isRegistering ? (
-        <RegisterPage />  // Показываем страницу регистрации
-      ) : !user ? (
+      {!user ? (
         <LoginPage onLogin={handleLogin} />
       ) : (
         <div className="app-content">
@@ -71,13 +66,13 @@ function App() {
             <button onClick={handleLogout}>Выйти</button>
           </header>
           {user.role === 'admin' && <AddDiplomaForm />}
-          {user.role === 'user' && <DiplomaList />}
+          {user.role === 'user' && (
+            <div>
+              <DiplomaList />
+              <UserStats />
+            </div>
+          )}
         </div>
-      )}
-
-      {/* Кнопка для перехода на страницу регистрации */}
-      {!isRegistering && !user && (
-        <button onClick={() => setIsRegistering(true)}>Зарегистрироваться</button>
       )}
     </div>
   );

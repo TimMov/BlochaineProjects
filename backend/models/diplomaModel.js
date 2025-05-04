@@ -12,6 +12,18 @@ async function saveDiplomaToDB({ studentName, universityName, year, degree_Type,
 }
 
 
+async function getTotalDiplomaCount() {
+  const result = await db.query('SELECT COUNT(*) FROM diplomas;');
+  return result.rows[0].count;
+}
+
+async function getAllDiplomas() {
+  const result = await db.query('SELECT * FROM diplomas ORDER BY id DESC;');
+  return result.rows;
+}
+
 module.exports = {
   saveDiplomaToDB,
+  getTotalDiplomaCount,
+  getAllDiplomas
 };

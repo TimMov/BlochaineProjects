@@ -65,13 +65,12 @@ function App() {
             <span>Пользователь: {user.username}</span>
             <button onClick={handleLogout}>Выйти</button>
           </header>
+
+          {/* Статистика теперь доступна всем пользователям */}
+          <UserStats />
+
           {user.role === 'admin' && <AddDiplomaForm />}
-          {user.role === 'user' && (
-            <div>
-              <DiplomaList />
-              <UserStats />
-            </div>
-          )}
+          <DiplomaList />
         </div>
       )}
     </div>

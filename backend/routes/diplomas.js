@@ -129,4 +129,49 @@ router.get('/', async (req, res, next) => {
   }
 });
 
+router.get('/stats/years-by-specialty', async (req, res, next) => {
+  try {
+    const result = await pool.query(
+      `SELECT year, specialty_code, COUNT(*) AS diploma_count
+       FROM diplomas
+       GROUP BY year, specialty_code
+       ORDER BY year DESC, specialty_code`
+    );
+    
+    // Формируем данные для графика
+    const data = result.rows.reduce((acc, row) => {
+      if (!acc[row.year]) {
+        acc[row.year] = {};
+      }
+      acc[row.year][row.specialty_code] = row.diploma_count;
+      return acc;
+    }, {});
+
+    // Преобразуем данные для удобного отображения
+    const years = Object.keys(data);
+    const specialties = new Set();
+
+    years.forEach(year => {
+      Object.keys(data[year]).forEach(specialty => {
+        specialties.add(specialty);
+      });
+    });
+
+    // Формируем массивы для графика
+    const chartData = {
+      labels: years.reverse(), // Года
+      datasets: Array.from(specialties).map(specialty => ({
+        label: `Специальность ${specialty}`,
+        data: years.map(year => data[year]?.[specialty] || 0),
+        borderColor: `#${Math.floor(Math.random()*16777215).toString(16)}`, // Генерация случайного цвета для каждой линии
+        fill: false,
+      })),
+    };
+
+    res.json(chartData);
+  } catch (error) {
+    next(error);
+  }
+});
+
 module.exports = router;

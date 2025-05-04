@@ -1,36 +1,30 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useEffect, useState } from "react";
+import axios from "axios";
 
-export default function GlobalStats() {
-  const [total, setTotal] = useState(null);
-  const [error, setError] = useState('');
+const UserStats = () => {
+  const [totalDiplomas, setTotalDiplomas] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    async function fetchStats() {
+    const fetchStats = async () => {
       try {
-        const res = await axios.get('/api/diplomas/stats/total');
-        if (res.data.success) {
-          setTotal(res.data.total);
-        } else {
-          setError('Не удалось загрузить статистику');
-        }
+        const response = await axios.get("http://localhost:5000/api/diplomas/stats/total");
+        setTotalDiplomas(response.data.total);
       } catch (err) {
-        console.error(err);
-        setError('Ошибка при загрузке статистики');
+        console.error("Ошибка при загрузке статистики", err);
+        setError("Не удалось загрузить статистику.");
       }
-    }
+    };
 
     fetchStats();
   }, []);
 
   return (
-    <div className="global-stats">
-      {error && <p className="error">{error}</p>}
-      {total !== null ? (
-        <p><strong>Всего дипломов в системе:</strong> {total}</p>
-      ) : (
-        <p>Загрузка статистики...</p>
-      )}
+    <div className="stats">
+      {error && <div className="error">{error}</div>}
+      <h3>Общее количество дипломов: {totalDiplomas}</h3>
     </div>
   );
-}
+};
+
+export default UserStats;

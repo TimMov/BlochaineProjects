@@ -16,14 +16,15 @@ router.get('/stats/total', async (req, res) => {
     }
 });
 
-router.get('/', async (req, res) => {
+router.get('/stats/total', async (req, res) => {
     try {
-      const result = await db.query('SELECT * FROM diplomas ORDER BY id DESC;');
-      res.json({ success: true, diplomas: result.rows });
-    } catch (err) {
-      console.error('Ошибка при получении дипломов:', err);
-      res.status(500).json({ success: false, message: 'Ошибка сервера' });
+      const count = await getTotalDiplomaCount(); // функция должна возвращать число
+      res.json({ success: true, total: parseInt(count) }); // важно: привести count к числу
+    } catch (error) {
+      console.error('Ошибка при получении общей статистики:', error);
+      res.status(500).json({ success: false, message: 'Ошибка при получении статистики' });
     }
   });
+  
 
 module.exports = router;

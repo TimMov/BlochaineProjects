@@ -14,7 +14,7 @@ async function saveDiplomaToDB({ studentName, universityName, year, degree_Type,
 
 async function getTotalDiplomaCount() {
   const result = await db.query('SELECT COUNT(*) FROM diplomas;');
-  return result.rows[0].count;
+  return result.rows[0].count; // Это будет строка, поэтому лучше сразу parseInt
 }
 
 async function getAllDiplomas() {

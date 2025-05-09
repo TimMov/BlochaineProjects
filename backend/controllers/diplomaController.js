@@ -17,7 +17,6 @@ async function addDiploma(req, res) {
       degree_type: degreeType
     } = req.body;
 
-    // Проверка наличия всех полей
     if (
       typeof studentName !== 'string' || studentName.trim() === '' ||
       typeof universityName !== 'string' || universityName.trim() === '' ||
@@ -34,7 +33,6 @@ async function addDiploma(req, res) {
 
     console.log('Попытка добавления диплома:', { studentName, universityName, year, degreeType });
 
-    // Вызов контракта (предполагаем, что контракт теперь принимает degreeType вместо diplomaHash)
     const tx = await contract.addDiploma(studentName, universityName, year, degreeType, {
       gasLimit: 500000,
       gasPrice: ethers.parseUnits('10', 'gwei')
@@ -45,7 +43,6 @@ async function addDiploma(req, res) {
     const receipt = await tx.wait();
     console.log('Транзакция подтверждена в блоке:', receipt.blockNumber);
 
-    // Сохраняем в БД
     const savedDiploma = await saveDiplomaToDB({
       studentName,
       universityName,

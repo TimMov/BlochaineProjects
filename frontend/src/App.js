@@ -1,4 +1,3 @@
-// src/App.js
 import { useState, useEffect } from 'react';
 import AddDiplomaForm from './components/AddDiplomaForm';
 import LoginPage from './LoginPage';
@@ -9,7 +8,7 @@ import RegisterPage from './RegisterPage';
 
 function App() {
   const [user, setUser] = useState(null);
-  const [showRegister, setShowRegister] = useState(false); // Новый флаг
+  const [showRegister, setShowRegister] = useState(false); 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -41,7 +40,7 @@ function App() {
       localStorage.setItem('user', JSON.stringify(userToStore));
       setUser(userToStore);
       setError(null);
-      setShowRegister(false); // Скрываем форму регистрации после логина
+      setShowRegister(false); 
     } catch (e) {
       console.error('Login error:', e);
       setError(e.message);

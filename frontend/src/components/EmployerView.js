@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import './EmployerView.css'; // Подключаем CSS
+import './EmployerView.css'; 
 
 function EmployerView() {
     const [diplomas, setDiplomas] = useState([]);

@@ -4,48 +4,41 @@ const pool = require('../db');
 const { addDiplomaToBlockchain } = require('../blockchain');
 const crypto = require('crypto');
 
-// Маршрут для создания диплома
 router.post('/', async (req, res, next) => {
   try {
     const { studentName, universityName, year, degree_type, diplomaSeries, diplomaNumber, registrationNumber, specialty_code } = req.body;
 
-    // Проверка обязательных полей
     if (!studentName || !universityName || !year || !degree_type || !diplomaSeries || !diplomaNumber || !registrationNumber || !specialty_code) {
       return res.status(400).json({
-        error: 'Missing required fields',
+        error: 'Отсутствуют обязательные поля',
         required: ['studentName', 'universityName', 'year', 'degree_type', 'diplomaSeries', 'diplomaNumber', 'registrationNumber', 'specialty_code']
       });
     }
 
-    // Валидация формата диплома
     if (diplomaSeries.length !== 6) {
       return res.status(400).json({
-        error: 'Diploma series must be exactly 6 characters long.'
+        error: 'Серия дипломов должна содержать ровно 6 символов.'
       });
     }
 
-    // Валидация номера диплома
     if (diplomaNumber.length !== 7) {
       return res.status(400).json({
-        error: 'Diploma number must be exactly 7 characters long.'
+        error: 'Длина номера диплома должна составлять ровно 7 символов.'
       });
     }
 
-    // Валидация регистрационного номера
     if (registrationNumber.length !== 6) {
       return res.status(400).json({
-        error: 'Registration number must be exactly 6 characters long.'
+        error: 'Регистрационный номер должен содержать ровно 6 символов.'
       });
     }
 
-    // Валидация кода специальности
     if (specialty_code.length !== 8) {
       return res.status(400).json({
-        error: 'Specialty code must be exactly 8 characters long.'
+        error: 'Код специальности должен содержать ровно 8 символов.'
       });
     }
 
-    // Создание хеша диплома
     const diplomaHash = crypto.createHash('sha256')
       .update(`${studentName}${universityName}${year}${diplomaSeries}${diplomaNumber}${registrationNumber}`)
       .digest('hex');
@@ -54,7 +47,6 @@ router.post('/', async (req, res, next) => {
     try {
       await client.query('BEGIN');
 
-      // Проверка на наличие такого диплома
       const existing = await client.query(
         `SELECT diploma_id FROM diplomas 
           WHERE diploma_series = $1 and diploma_number = $2 and registration_number = $3`,
@@ -68,7 +60,6 @@ router.post('/', async (req, res, next) => {
         });
       }
 
-      // Сохраняем в PostgreSQL
       console.log(diplomaHash);
       const dbRes = await client.query(
         `INSERT INTO diplomas 
@@ -78,7 +69,6 @@ router.post('/', async (req, res, next) => {
         [studentName, universityName, year, diplomaHash, degree_type, diplomaSeries, diplomaNumber, registrationNumber, specialty_code]
       );
 
-      // Сохраняем в блокчейн
       const blockchainRes = await addDiplomaToBlockchain({
         studentName,
         universityName,
@@ -90,7 +80,6 @@ router.post('/', async (req, res, next) => {
         specialty_code
       });
 
-      // Обновляем статус
       await client.query(
         `UPDATE diplomas SET 
          tx_hash = $1, block_number = $2, status = 'confirmed'
@@ -139,7 +128,6 @@ router.get('/stats/years-by-specialty', async (req, res, next) => {
        ORDER BY year DESC, specialty_code`
     );
     
-    // Формируем данные для графика
     const data = result.rows.reduce((acc, row) => {
       if (!acc[row.specialty_code]) {
         acc[row.specialty_code] = {};
@@ -148,17 +136,15 @@ router.get('/stats/years-by-specialty', async (req, res, next) => {
       return acc;
     }, {});
 
-    // Преобразуем данные для удобного отображения
     const specialties = Object.keys(data);
     const years = Array.from(new Set(Object.values(data).flatMap(item => Object.keys(item)))).sort();
 
-    // Формируем массив для графика
     const chartData = {
-      labels: years, // Года
+      labels: years, 
       datasets: specialties.map(specialty => ({
         label: `Специальность ${specialty}`,
-        data: years.map(year => data[specialty]?.[year] || 0), // Если данных нет для года, показываем 0
-        borderColor: `#${Math.floor(Math.random() * 16777215).toString(16)}`, // Генерация случайного цвета для каждой линии
+        data: years.map(year => data[specialty]?.[year] || 0),
+        borderColor: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
         fill: false,
         backgroundColor: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
       })),

@@ -130,7 +130,7 @@ const DiplomaStatistics = () => {
                     display: true,
                     text: 'Годы',
                   },
-                  stacked: false, // Отключаем наслаивание столбиков
+                  stacked: false,
                 },
                 y: {
                   title: {

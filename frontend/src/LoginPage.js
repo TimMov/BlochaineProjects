@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import axios from 'axios';
 
-const LoginPage = ({ onLogin }) => {
+const LoginPage = ({ onLogin, onShowRegister }) => {
   const [inputs, setInputs] = useState({ username: '', password: '' });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -34,9 +34,9 @@ const LoginPage = ({ onLogin }) => {
     setInputs({ ...inputs, [e.target.name]: e.target.value });
   };
 
-  const handleGoToRegister = () => {
-    window.location.href = '/register'; // Переход на страницу регистрации
-  };
+  // const handleGoToRegister = () => {
+  //   window.location.href = '/register'; // Переход на страницу регистрации
+  // };
 
   return (
     <div className="login-form">
@@ -62,7 +62,7 @@ const LoginPage = ({ onLogin }) => {
           {isLoading ? 'Вход...' : 'Войти'}
         </button>
       </form>
-      <button onClick={handleGoToRegister}>
+      <button onClick={onShowRegister}>
         Зарегистрироваться
       </button>
     </div>

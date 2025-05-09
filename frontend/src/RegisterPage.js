@@ -2,7 +2,7 @@ import { useState } from 'react';
 import axios from 'axios';
 
 const RegisterPage = () => {
-  const [inputs, setInputs] = useState({ username: '', password: '' });
+  const [inputs, setInputs] = useState({ username: '', password: '', role: '' });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -48,6 +48,13 @@ const RegisterPage = () => {
           value={inputs.password}
           onChange={handleChange}
           placeholder="Пароль"
+          required
+        />
+        <input
+          name="role"
+          value={inputs.role}
+          onChange={handleChange}
+          placeholder="Роль"
           required
         />
         <button type="submit" disabled={isLoading}>

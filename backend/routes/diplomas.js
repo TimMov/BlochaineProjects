@@ -119,10 +119,11 @@ router.post('/', async (req, res, next) => {
 router.get('/', async (req, res, next) => {
   try {
     const result = await pool.query(
-      `SELECT diploma_id, student_name, university_name, year, degree_type, diploma_series, diploma_number, registration_number
+      `SELECT diploma_id, student_name, university_name, year, degree_type, diploma_series, diploma_number, registration_number, year, specialty_code
        FROM diplomas
        ORDER BY created_at DESC`
     );
+    console.log(result.rows);
     res.json(result.rows);
   } catch (error) {
     next(error);

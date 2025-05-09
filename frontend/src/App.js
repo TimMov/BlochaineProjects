@@ -4,9 +4,12 @@ import AddDiplomaForm from './components/AddDiplomaForm';
 import LoginPage from './LoginPage';
 import UserStats from './components/UserStats';
 import './App.css';
+import EmployerView  from './components/EmployerView';
+import RegisterPage from './RegisterPage';
 
 function App() {
   const [user, setUser] = useState(null);
+  const [showRegister, setShowRegister] = useState(false); // Новый флаг
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -38,6 +41,7 @@ function App() {
       localStorage.setItem('user', JSON.stringify(userToStore));
       setUser(userToStore);
       setError(null);
+      setShowRegister(false); // Скрываем форму регистрации после логина
     } catch (e) {
       console.error('Login error:', e);
       setError(e.message);
@@ -57,7 +61,11 @@ function App() {
     <div className="App">
       {error && <div className="error">{error}</div>}
       {!user ? (
-        <LoginPage onLogin={handleLogin} />
+        showRegister ? (
+          <RegisterPage onRegisterSuccess={() => setShowRegister(false)} />
+        ) : (
+          <LoginPage onLogin={handleLogin} onShowRegister={() => setShowRegister(true)} />
+        )
       ) : (
         <div className="app-content">
           <header>
@@ -66,10 +74,12 @@ function App() {
           </header>
           {user.role === 'admin' && <AddDiplomaForm />}
           {user.role === 'user' && <UserStats />}
+          {user.role === 'employer' && <EmployerView />}
         </div>
       )}
     </div>
   );
 }
+
 
 export default App;

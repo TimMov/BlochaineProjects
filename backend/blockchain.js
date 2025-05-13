@@ -1,20 +1,14 @@
-// backend/blockchain.js
-
 const { ethers } = require('ethers');
 const diplomaContractABI = require('./contracts/abi/DiplomaContract.json'); // ABI контракта
 require('dotenv').config();
 
-// Настройки подключения к блокчейну
-const provider = new ethers.JsonRpcProvider(process.env.RPC_URL); // RPC_URL из .env
+const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
 const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
 
-// Адрес развернутого контракта
 const contractAddress = process.env.CONTRACT_ADDRESS;
 
-// Подключение к контракту
 const contract = new ethers.Contract(contractAddress, diplomaContractABI, wallet);
 
-// Функция для добавления диплома в блокчейн
 async function addDiplomaToBlockchain({
     studentName,
     universityName,

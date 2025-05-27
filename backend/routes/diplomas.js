@@ -194,4 +194,40 @@ router.get('/specialties', async (req, res) => {
   res.json(result.rows);
 });
 
+router.get('/stats/years-by-degree-and-specialty', async (req, res, next) => {
+  try {
+    const result = await pool.query(
+      `SELECT year, degree_type, specialty_code, COUNT(*) AS diploma_count
+       FROM diplomas
+       GROUP BY year, degree_type
+       ORDER BY year DESC, degree_type`
+    );
+
+    const data = result.rows.reduce((acc, row) => {
+      if (!acc[row.degree_type]) acc[row.degree_type] = {};
+      acc[row.degree_type][row.year] = parseInt(row.diploma_count);
+      return acc;
+    }, {});
+
+    const degreeTypes = Object.keys(data);
+    const years = Array.from(new Set(result.rows.map(row => row.year))).sort();
+
+    const chartData = {
+      labels: years,
+      datasets: degreeTypes.map(degree => ({
+        label: degree,
+        data: years.map(year => data[degree][year] || 0),
+        borderColor: `#${Math.floor(Math.random()*16777215).toString(16)}`,
+        backgroundColor: `#${Math.floor(Math.random()*16777215).toString(16)}`,
+        fill: false
+      }))
+    };
+
+    res.json(chartData);
+  } catch (error) {
+    next(error);
+  }
+});
+
+
 module.exports = router;

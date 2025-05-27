@@ -35,7 +35,8 @@ function EmployerView() {
     const filteredDiplomas = diplomas.filter(d =>
         (d.student_name && d.student_name.toLowerCase().includes(filter.toLowerCase())) ||
         (d.university_name && d.university_name.toLowerCase().includes(filter.toLowerCase())) ||
-        (d.degree_type && d.degree_type.toLowerCase().includes(filter.toLowerCase()))
+        (d.degree_type && d.degree_type.toLowerCase().includes(filter.toLowerCase())) ||
+        (d.diploma_number && d.diploma_number.toLowerCase().includes(filter.toLowerCase()))
     );
 
     return (
@@ -47,7 +48,7 @@ function EmployerView() {
                     type="text"
                     value={filter}
                     onChange={(e) => setFilter(e.target.value)}
-                    placeholder="Введите ФИО, вуз или степень"
+                    placeholder="Введите ФИО, вуз, степень или номер"
                 />
             </div>
 

@@ -194,36 +194,39 @@ router.get('/specialties', async (req, res) => {
   res.json(result.rows);
 });
 
+// Новый маршрут: статистика по годам, степеням и специальностям
 router.get('/stats/years-by-degree-and-specialty', async (req, res, next) => {
   try {
     const result = await pool.query(
-      `SELECT year, degree_type, specialty_code, COUNT(*) AS diploma_count
-       FROM diplomas
-       GROUP BY year, degree_type
-       ORDER BY year DESC, degree_type`
+      `SELECT d.year, d.degree_type, s.code AS specialty_code, COUNT(*) AS diploma_count
+       FROM diplomas d
+       JOIN specialties s ON d.specialty_id = s.specialty_id
+       GROUP BY d.year, d.degree_type, s.code
+       ORDER BY d.year, d.degree_type, s.code`
     );
 
-    const data = result.rows.reduce((acc, row) => {
-      if (!acc[row.degree_type]) acc[row.degree_type] = {};
-      acc[row.degree_type][row.year] = parseInt(row.diploma_count);
-      return acc;
-    }, {});
+    const data = result.rows;
 
-    const degreeTypes = Object.keys(data);
-    const years = Array.from(new Set(result.rows.map(row => row.year))).sort();
+    const yearsSet = new Set();
+    const lineGroups = {};
 
-    const chartData = {
-      labels: years,
-      datasets: degreeTypes.map(degree => ({
-        label: degree,
-        data: years.map(year => data[degree][year] || 0),
-        borderColor: `#${Math.floor(Math.random()*16777215).toString(16)}`,
-        backgroundColor: `#${Math.floor(Math.random()*16777215).toString(16)}`,
-        fill: false
-      }))
-    };
+    for (const row of data) {
+      yearsSet.add(row.year);
+      const label = `${row.degree_type.toUpperCase()} / ${row.specialty_code}`;
+      if (!lineGroups[label]) lineGroups[label] = {};
+      lineGroups[label][row.year] = Number(row.diploma_count);
+    }
 
-    res.json(chartData);
+    const years = Array.from(yearsSet).sort((a, b) => a - b);
+    const datasets = Object.entries(lineGroups).map(([label, yearMap]) => ({
+      label,
+      data: years.map(year => yearMap[year] || 0),
+      borderColor: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+      backgroundColor: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+      fill: false
+    }));
+
+    res.json({ labels: years, datasets });
   } catch (error) {
     next(error);
   }

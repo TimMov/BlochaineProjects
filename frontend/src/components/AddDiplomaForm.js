@@ -25,6 +25,8 @@ const AddDiplomaForm = () => {
   const [success, setSuccess] = useState(false);
   const [universities, setUniversities] = useState([]);
   const [specialties, setSpecialties] = useState([]);
+  const [networkError, setNetworkError] = useState(false);
+
 
   const degrees = [
     { value: 'bachelor', label: 'Бакалавр' },
@@ -40,9 +42,16 @@ const AddDiplomaForm = () => {
   }, []);
 
   const fetchUniversities = async () => {
-    const res = await axios.get(`${API_BASE_URL}/api/diplomas/universities`);
-    setUniversities(res.data);
+    try {
+      const res = await axios.get(`${API_BASE_URL}/api/diplomas/universities`);
+      setUniversities(res.data);
+      setNetworkError(false);
+    } catch (err) {
+      console.error('Ошибка при получении университетов:', err);
+      setNetworkError(true);
+    }
   };
+
 
   const fetchSpecialties = async () => {
     const res = await axios.get(`${API_BASE_URL}/api/diplomas/specialties`);
@@ -161,12 +170,12 @@ const AddDiplomaForm = () => {
   });
 
   const filteredDiplomas = sortedDiplomas.filter(d =>
-  (d.student_name && d.student_name.toLowerCase().includes(filter.toLowerCase())) ||
-  (d.university_name && d.university_name.toLowerCase().includes(filter.toLowerCase())) ||
-  (d.degree_type && d.degree_type.toLowerCase().includes(filter.toLowerCase())) ||
-  (d.diploma_number && d.diploma_number.toLowerCase().includes(filter.toLowerCase())) ||
-  (d.diploma_series && d.diploma_series.toLowerCase().includes(filter.toLowerCase()))
-);
+    (d.student_name && d.student_name.toLowerCase().includes(filter.toLowerCase())) ||
+    (d.university_name && d.university_name.toLowerCase().includes(filter.toLowerCase())) ||
+    (d.degree_type && d.degree_type.toLowerCase().includes(filter.toLowerCase())) ||
+    (d.diploma_number && d.diploma_number.toLowerCase().includes(filter.toLowerCase())) ||
+    (d.diploma_series && d.diploma_series.toLowerCase().includes(filter.toLowerCase()))
+  );
 
 
   return (
@@ -179,6 +188,13 @@ const AddDiplomaForm = () => {
           <button onClick={() => setError('')} className="close-button">&times;</button>
         </div>
       )}
+
+      {networkError && (
+        <div className="error-message">
+          Ошибка: нет соединения с сервером. Пожалуйста, проверьте подключение.
+        </div>
+      )}
+
 
       {success && (
         <div className="success-message">

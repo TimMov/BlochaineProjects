@@ -55,7 +55,19 @@ body {
 
 .diploma-form {
   display: grid;
-  gap: 20px;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  max-width: 800px;
+}
+
+.diploma-form .form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.diploma-form button[type="submit"] {
+  grid-column: span 2;
+  margin-top: 1rem;
 }
 
 .form-group {
